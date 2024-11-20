@@ -1,0 +1,72 @@
+.split{
+  /*height: 100vh;*/
+  display:flex
+}
+
+.logo-half {
+  background-color: #1d1b20;
+  width: 50%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+}
+
+.about-half {
+  background-color: #5a28ff;
+  height: 100%;
+  width: 50%;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding-inline: 5vw;
+  text-align: left;
+  
+}
+
+.about-half main{
+  overflow: auto;
+}
+
+.about-half article {
+  margin-block-start: 5vh;
+}
+
+.about-half h1 {
+  font-size: xx-large;
+}
+
+header {
+  display: flex;
+  overflow: hidden;
+  background-color: #5a28ff;
+  position: sticky;
+  top: 0;
+}
+
+header a {
+  margin: 5%;
+  font-size: larger;
+  color: white;
+}
+
+main a {
+  color: white;
+}
+
+.logo-img {
+  width: 20%;
+}
+
+.socials {
+  display: flex;
+  flex-direction: row;
+  gap: 2vw;
+}
+
+.social-icon {
+  width: 3vw;
+}
