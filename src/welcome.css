@@ -47,6 +47,14 @@ header {
   top: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
+.logo-half a {
+  color: white;
+}
+
 header a {
   margin: 5%;
   font-size: larger;
