@@ -1,0 +1,76 @@
+body {
+    color: white;
+}
+
+.split{
+    /*height: 100vh;*/
+    display:flex
+}
+  
+.logo-half {
+    background-color: #1d1b20;
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+}
+
+.form-half {
+    background-color: #5a28ff;
+    height: 100vh;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 5vw;
+    text-align: left;
+}
+
+h1 {
+    font-size: xxx-large;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    margin: 3vh;
+}
+
+input {
+    border-radius: 10px;
+    padding: 10px;
+    font-size: medium;
+    margin-bottom: 3vh;
+    margin-top: 1vh ;
+}
+
+
+.form-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 3vw;
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+}
+
+button {
+    border-radius: 10px;
+    padding: 10px;
+    font-size: medium;
+    color: white;
+}
+
+.main-btn {
+    background-color: #1d1b20;
+    border: none;
+}
+
+.secondary-btn {
+    background-color: #5a28ff;
+    border-color: white;
+}

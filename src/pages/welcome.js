@@ -13,14 +13,14 @@ const Welcome = () => {
     return (
     <div className="split">
         <div className="logo-half">
-            <a href='./login.html' className="logo">
+            <a href='./login' className="logo">
                 <img src="logo.jpg" alt="logo" className="logo-img" />
                 <h1 className="logo-text-1">Plan A</h1>
             </a>
         </div>
         <div className="about-half">
             <header>
-                <HeaderBtn className="header-link" path="./login.html">Inicio</HeaderBtn>
+                <HeaderBtn className="header-link" path="./login">Inicio</HeaderBtn>
                 <HeaderBtn className="header-link" path="#about">Sobre nosotros</HeaderBtn>
                 <HeaderBtn className="header-link" path="#services">Servicios</HeaderBtn>
                 <HeaderBtn className="header-link" path="#contact">Contacto</HeaderBtn>
