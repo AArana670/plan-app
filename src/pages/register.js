@@ -1,29 +1,26 @@
 import React from "react";
-import "../styles/login.css"
+import "../styles/register.css"
 import { LogoHalf } from "../components/logoHalf";
 
-const Login = () => {
+const Register = () => {
     return (
         <div className="split">
             <LogoHalf/>
             <div className="form-half">
-                <h1>Únete ahora</h1>
+                <h1>Crea una cuenta</h1>
                 <form>
                     <label for="email">Correo electrónico</label>
                     <input id="email" type="text" placeholder="Correo electrónico" />
                     <label for="password">Contraseña</label>
                     <input id="password" type="password" placeholder="Contraseña" />
-                    <div className="form-buttons">
-                        <button className="main-btn" type="submit">Iniciar sesión</button>
-                        <a href="/register">
-                            <button className="secondary-btn" type="button">Crear cuenta</button>
-                        </a>
-                    </div>
+                    <label for="repeat-password">Repetir contraseña</label>
+                    <input id="repeat-password" type="password" placeholder="Contraseña" />
+                    <button className="main-btn" type="submit">Crear cuenta</button>
+                    
                 </form>
-                <a href="/forgot">He olvidado mi contraseña</a>
+                <a href="/login">Ya tengo una cuenta</a>
             </div>
         </div>);
-};
+}
 
-export default Login;
-
+export default Register

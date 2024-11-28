@@ -3,18 +3,6 @@
   display:flex
 }
 
-.logo-half {
-  background-color: #1d1b20;
-  width: 50%;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: sticky;
-  top: 0;
-}
-
 .about-half {
   background-color: #5a28ff;
   height: 100%;
@@ -24,7 +12,10 @@
   color: white;
   padding-inline: 5vw;
   text-align: left;
-  
+}
+
+a {
+  text-decoration: none;
 }
 
 .about-half main{
@@ -47,14 +38,6 @@ header {
   top: 0;
 }
 
-a {
-  text-decoration: none;
-}
-
-.logo-half a {
-  color: white;
-}
-
 header a {
   margin: 5%;
   font-size: larger;
@@ -63,10 +46,6 @@ header a {
 
 main a {
   color: white;
-}
-
-.logo-img {
-  width: 20%;
 }
 
 .socials {

@@ -1,0 +1,19 @@
+.logo-half {
+    background-color: #1d1b20;
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+}
+
+.logo-half a {
+    color: white;
+}
+
+.logo-img {
+    width: 20%;
+}

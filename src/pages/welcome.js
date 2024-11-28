@@ -1,5 +1,6 @@
 import {React, Children} from "react";
-import "../welcome.css"
+import "../styles/welcome.css"
+import { LogoHalf } from "../components/logoHalf";
 
 export function HeaderBtn({path, children}) {
 
@@ -12,12 +13,7 @@ export function HeaderBtn({path, children}) {
 const Welcome = () => {
     return (
     <div className="split">
-        <div className="logo-half">
-            <a href='./login' className="logo">
-                <img src="logo.jpg" alt="logo" className="logo-img" />
-                <h1 className="logo-text-1">Plan A</h1>
-            </a>
-        </div>
+        <LogoHalf/>
         <div className="about-half">
             <header>
                 <HeaderBtn className="header-link" path="./login">Inicio</HeaderBtn>
