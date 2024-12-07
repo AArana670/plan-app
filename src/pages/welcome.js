@@ -15,7 +15,7 @@ const Welcome = () => {
     <div className="split">
         <LogoHalf/>
         <div className="about-half">
-            <header>
+            <header className="welcome-header">
                 <HeaderBtn className="header-link" path="./login">Inicio</HeaderBtn>
                 <HeaderBtn className="header-link" path="#about">Sobre nosotros</HeaderBtn>
                 <HeaderBtn className="header-link" path="#services">Servicios</HeaderBtn>

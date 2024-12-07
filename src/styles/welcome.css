@@ -38,7 +38,7 @@ header {
   top: 0;
 }
 
-header a {
+welcome-header a {
   margin: 5%;
   font-size: larger;
   color: white;

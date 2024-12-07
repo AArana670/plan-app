@@ -45,7 +45,7 @@ input {
     margin-bottom: 2vh;
 }
 
-button {
+form button {
     border-radius: 10px;
     padding: 10px;
     font-size: medium;
@@ -60,4 +60,8 @@ button {
 .secondary-btn {
     background-color: #5a28ff;
     border-color: white;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
 }

@@ -1,0 +1,52 @@
+.header {
+    background-color: #5a28ff;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    width: 100vw;
+}
+
+.header a {
+    display: block;
+    align-content: center;
+}
+
+.header img{
+    height: 5vh;
+    align-items: center;
+}
+
+.header>div{
+    display: flex;
+    margin-inline: 1vw;
+}
+
+.project-name {
+    margin-left: 2vw;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+}
+
+.project-sections {
+    gap: 1vw;
+}
+
+.header-notifications button{
+    display: flex;
+}
+
+.alert {
+    background-color: red;
+    border-radius: 50%;
+    z-index: 1;
+    margin-left: -15px;
+    height:fit-content;
+    width: fit-content;
+    padding-inline: 5px;
+    font-size: medium;
+}
