@@ -45,19 +45,19 @@ input {
     margin-bottom: 2vh;
 }
 
-button {
+.register button {
     border-radius: 10px;
     padding: 10px;
     font-size: medium;
     color: white;
 }
 
-.main-btn {
+.register .main-btn {
     background-color: #1d1b20;
     border: none;
 }
 
-.secondary-btn {
+.register .secondary-btn {
     background-color: #5a28ff;
     border-color: white;
 }

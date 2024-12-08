@@ -1,0 +1,23 @@
+.main-btn {
+    background-color: #5a28ff;
+    color: white;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: medium;
+    cursor:pointer;
+}
+
+.icon-btn {
+    background-color: #5a28ff;
+    color: white;
+    border-radius: 50%;
+    border: none;
+    padding: 8px;
+    font-size: medium;
+    cursor:pointer;
+    height: fit-content;
+}
+
+.icon-btn img {
+    height: 3vh;
+}

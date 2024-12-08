@@ -30,7 +30,7 @@ a {
   font-size: xx-large;
 }
 
-header {
+.welcome-header {
   display: flex;
   overflow: hidden;
   background-color: #5a28ff;
@@ -38,7 +38,7 @@ header {
   top: 0;
 }
 
-welcome-header a {
+.welcome-header a {
   margin: 5%;
   font-size: larger;
   color: white;

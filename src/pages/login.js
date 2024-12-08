@@ -8,7 +8,7 @@ const Login = () => {
             <LogoHalf/>
             <div className="form-half">
                 <h1>Únete ahora</h1>
-                <form>
+                <form className="login">
                     <label for="email">Correo electrónico</label>
                     <input id="email" type="text" placeholder="Correo electrónico" />
                     <label for="password">Contraseña</label>

@@ -6,7 +6,9 @@ import Welcome from "./pages/welcome";
 import Register from "./pages/register";
 import Forgot from "./pages/forgot";
 import Projects from "./pages/projects";
-import Main from './pages/main';
+import Home from './pages/home';
+import Calendar from './pages/calendar';
+import Users from './pages/users';
 
 function App() {
   return (
@@ -17,8 +19,9 @@ function App() {
         <Route path="/register" component={Register} />
         <Route path="/forgot" component={Forgot} />
         <Route path="/projects" component={Projects} />
-        <Route path="/project/:id" component={Main} />
-        <Route path="/project/:id/calendar" component={Main} />
+        <Route path="/project/:id" component={Home} />
+        <Route path="/project/:id/calendar" component={Calendar} />
+        <Route path="/project/:id/users" component={Users} />
       </Switch>
     </div>
   );

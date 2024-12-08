@@ -1,0 +1,43 @@
+.projects-main {
+    padding: 20px;
+    max-height: 80vh;
+    text-align: end;
+}
+
+.main-btn {
+    margin-right: 4vw;
+}
+
+.cardlist {
+    background-color: #efeaff;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    column-gap: 2vw;
+    margin-top: 2%;
+    margin-inline: 2vw;
+    overflow-x: auto;
+}
+
+.card {
+    display: block;
+    background-color: #f5f3ff;
+    height: fit-content;
+    color: black;
+    text-align: start;
+    border: 2px solid black;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.card img {
+    height: 20vh;
+    width: 10vw;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.card h2 {
+    margin-block: 2vh;
+    margin-inline: 0.5vw;
+}

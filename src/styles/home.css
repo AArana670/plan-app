@@ -1,0 +1,15 @@
+.home-main {
+    color: #5a28ff;
+    margin-inline: 5vw;
+}
+
+.home-main header {
+    display: flex;
+    justify-content: space-between;
+    align-items:end;
+}
+
+.home-main h1{
+    color: black;
+    font-weight: normal;
+}

@@ -8,7 +8,7 @@ const Register = () => {
             <LogoHalf/>
             <div className="form-half">
                 <h1>Crea una cuenta</h1>
-                <form>
+                <form className="register">
                     <label for="email">Correo electrónico</label>
                     <input id="email" type="text" placeholder="Correo electrónico" />
                     <label for="password">Contraseña</label>

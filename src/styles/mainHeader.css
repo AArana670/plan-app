@@ -5,7 +5,10 @@
     justify-content: space-between;
     flex-direction: row;
     align-items: center;
-    width: 100vw;
+    width: 100%;
+    padding: 5px;
+    position: sticky;
+    top: 0;
 }
 
 .header a {
@@ -20,14 +23,19 @@
 
 .header>div{
     display: flex;
-    margin-inline: 1vw;
+    align-items: center;
+    margin-right: 1vw;
+}
+
+.header-menu {
+    margin-left: 1vw;
 }
 
 .project-name {
     margin-left: 2vw;
 }
 
-.icon-btn {
+.header .header-btn {
     background: none;
     border: none;
 }
@@ -42,6 +50,7 @@
 
 .alert {
     background-color: red;
+    color: white;
     border-radius: 50%;
     z-index: 1;
     margin-left: -15px;

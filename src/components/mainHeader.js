@@ -5,13 +5,13 @@ import { Redirect } from "wouter";
 const Notifications = ({alert}) => {
   if (alert==0) return (
   <div className="header-notifications">
-    <button className="icon-btn">
+    <button className="header-btn">
       <img src="/icons/notifications.svg" alt="notifications" />
     </button>
   </div>)
   return (
   <div className="header-notifications">
-    <button className="icon-btn">
+    <button className="header-btn">
       <img src="/icons/notifications.svg" alt="notifications" />
       <div className="alert">
         {alert}
@@ -20,7 +20,7 @@ const Notifications = ({alert}) => {
   </div>)
 }
 
-const ProjectHeader = ({id, params}) => {
+const ProjectHeader = ({id, current, params}) => {
   if (!id) {
     return (
       <header className="header">
@@ -54,13 +54,13 @@ const ProjectHeader = ({id, params}) => {
         <a className="header-users" href={"/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
         </a>
-        <button className="icon-btn">
+        <button className="header-btn">
           <img src="/icons/chat.svg" alt="chat" />
         </button>
       </div>
       <div>
         <Notifications alert={5}/>
-        <div className="header_user">
+        <div className="header-user">
           <img src="/icons/user-circle.svg" alt="user" />
         </div>
       </div>

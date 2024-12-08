@@ -1,0 +1,23 @@
+.tasklist {
+    background-color: #efeaff;
+    max-height: 50vh;
+    margin-inline: 2vw;
+    margin-top: 5vh;
+    margin-bottom: 2vh;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 1vh;
+    overflow: auto;
+}
+
+.task {
+    width: inherit;
+    background-color: #f5f3ff;
+    color: black;
+    text-align: start;
+    border: 2px solid black;
+    border-radius: 20px;
+    padding-inline: 1vw;
+    cursor: pointer;
+}
