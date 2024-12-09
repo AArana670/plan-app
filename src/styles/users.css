@@ -1,3 +1,50 @@
-.users-main {
+.users-main main {
     margin-inline: 5vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    height: 90vh;
+}
+
+.userlist {
+    width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 1vh;
+    margin-block: 5vh;
+    align-items: center;
+    overflow: auto;
+    align-self: center;
+}
+
+.user {
+    background-color: #eaddff;
+    width: 90%;
+    border: 3px solid #5a28ff;
+    border-radius: 20px;
+    padding-inline: 2vw;
+    padding-block: 2vh;
+    font-size: x-large;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user select {
+    border: 2px solid #5a28ff;
+    border-radius: 10px;
+    font-size: medium;
+    padding: 5px;
+    background-color: white;
+}
+
+.users-main .buttons {
+    width: fit-content;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2vh;
 }
