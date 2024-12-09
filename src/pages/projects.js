@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../components/mainHeader";
-import MainButton from "../components/buttons";
+import {MainButton} from "../components/buttons";
 import TaskList from "../components/taskList";
 import "../styles/projects.css"
 
@@ -30,7 +30,7 @@ const Projects = () => {
     <div>
       <Header />
       <main className="projects-main">
-        <MainButton id="new-project" text="Nuevo Proyecto"/>
+      <MainButton id="new-project" text="Nuevo Proyecto"/>
         <CardList cards={cards}/>
         <TaskList tasks={tasks}/>
       </main>

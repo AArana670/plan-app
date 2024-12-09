@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/buttons.css"
 
-const MainButton = (params) => {
+export function MainButton(params) {
     return (
         <button id={params.id} className="main-btn">
             {params.text}
@@ -9,12 +9,10 @@ const MainButton = (params) => {
     )
 }
 
-const IconButton = (params) => {
+export function IconButton(params) {
     return (
         <button id={params.id} className="icon-btn">
             <img src={params.src}/>
         </button>
     )
 }
-
-export default (MainButton, IconButton)

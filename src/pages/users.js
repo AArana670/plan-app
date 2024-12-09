@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/users.css"
 import ProjectHeader from "../components/mainHeader";
-import IconButton from "../components/buttons"
+import {IconButton} from "../components/buttons"
 
 const UserList = ({users, roles}) => {
     var userElems = []

@@ -1,6 +1,6 @@
 import React from "react";
 import ProjectHeader from "../components/mainHeader";
-import IconButton from "../components/buttons";
+import {IconButton} from "../components/buttons";
 import "../styles/home.css";
 import { Redirect } from "wouter";
 

@@ -25,7 +25,7 @@
     height: fit-content;
     color: black;
     text-align: start;
-    border: 2px solid black;
+    border: 1px solid gray;
     border-radius: 20px;
     cursor: pointer;
 }
