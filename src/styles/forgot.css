@@ -22,7 +22,7 @@ h1 {
     font-size: xxx-large;
 }
 
-form {
+.form-half form {
     display: flex;
     flex-direction: column;
     margin: 3vh;
@@ -36,30 +36,13 @@ input {
     margin-top: 1vh ;
 }
 
-
-.form-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 3vw;
-    margin-top: 1vh;
-    margin-bottom: 2vh;
-}
-
-form button {
+.form-half .main-btn {
     border-radius: 10px;
     padding: 10px;
     font-size: medium;
     color: white;
-}
-
-.main-btn {
     background-color: #1d1b20;
     border: none;
-}
-
-.secondary-btn {
-    background-color: #5a28ff;
-    border-color: white;
 }
 
 input[type=number] {
