@@ -12,6 +12,7 @@
   color: white;
   padding-inline: 5vw;
   text-align: left;
+  overflow: auto;
 }
 
 a {
