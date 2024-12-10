@@ -8,7 +8,7 @@ function Cell({value}) {
     console.log(value)
     return (
         <th className="cell">
-            <input type="text" className="cell-input" value={value}/>
+            <input type="text" onFocus={(event) => event.target.select()} className="cell-input" value={value}/>
         </th>
     )
 }
@@ -18,18 +18,34 @@ const Excel = ({columns, rows, params}) => {
     for (let i in columns){
         colElems.push(<Cell value={columns[i]}/>)
     }
+
+    var content = [];
+    for (let i in rows){
+        let row = []
+        console.log(rows[i])
+        for (let j in columns){
+            const col = columns[j]
+            console.log(col)
+            row.push(<Cell value={rows[i][col] || ""}/>)
+        }
+        content.push(
+        <tr className="excel-row">
+            {row}
+        </tr>)
+    }
     return (
     <table row className="excel">
         <tr className="excel-row">
             {colElems}
         </tr>
+        {content}
     </table>)
 }
 
 const Home = ({params}) => {
     const workColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
     const otherColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
-    const works = [{nombre: "Estatua 1", artista: "Halfonso", peso: "20", luz: "250", humedad: "5", noenque: "210"}, {nombre: "Estatua 2", artista: "Halfonso", peso: "20", luz: "320", humedad: "5", noenque: "195"}, {nombre: "Cuadro 1", artista: "Halfonso", peso: "20", luz: "250", humedad: "5", noenque: "203", noencuantos: "52"}]
+    const works = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
     const others = []
 
     console.log(params)
@@ -42,7 +58,7 @@ const Home = ({params}) => {
                     <h2>Obras</h2>
                     <IconButton id="scan-works" src="/icons/document.svg"/>
                 </header>
-                <Excel columns={workColumns}/>
+                <Excel columns={workColumns} rows={works}/>
                 <hr/>
                 <header>
                     <h2>Otros elementos</h2>

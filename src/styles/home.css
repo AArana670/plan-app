@@ -16,5 +16,11 @@
 
 .excel {
     display: flex;
+    flex-direction: column;
     overflow: auto;
 }
+
+/*.excel-row {
+    display: flex;
+    overflow: auto;
+}*/
