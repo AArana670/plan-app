@@ -9,7 +9,12 @@
     align-items:end;
 }
 
-.home-main h1{
+.home-main h2{
     color: black;
     font-weight: normal;
+}
+
+.excel {
+    display: flex;
+    overflow: auto;
 }
