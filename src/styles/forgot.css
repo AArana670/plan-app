@@ -28,7 +28,7 @@ h1 {
     margin: 3vh;
 }
 
-input {
+.form-half input {
     border-radius: 10px;
     padding: 10px;
     font-size: medium;

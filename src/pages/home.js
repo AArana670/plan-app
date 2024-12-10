@@ -46,7 +46,7 @@ const Home = ({params}) => {
     const workColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
     const otherColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
     const works = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
-    const others = []
+    const others = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
 
     console.log(params)
     if (!params.id) return <Redirect to="/projects" />;
@@ -64,7 +64,7 @@ const Home = ({params}) => {
                     <h2>Otros elementos</h2>
                     <IconButton id="scan-works" src="/icons/document.svg"/>
                 </header>
-                <Excel />
+                <Excel columns={otherColumns} rows={others}/>
             </main>
         </div>
     )
