@@ -18,34 +18,45 @@ const Excel = ({columns, rows, params}) => {
     for (let i in columns){
         colElems.push(<Cell value={columns[i]}/>)
     }
+    colElems.push(<Cell className="extra-row extra-col" value={""}/>)
 
     var content = [];
     for (let i in rows){
         let row = []
-        console.log(rows[i])
         for (let j in columns){
             const col = columns[j]
-            console.log(col)
             row.push(<Cell value={rows[i][col] || ""}/>)
         }
+
+        //Add an empty column to the table, so that it can be clicked to create a new attribute
+        row.push(<Cell className="extra-row" value={""}/>)
+
         content.push(
         <tr className="excel-row">
             {row}
         </tr>)
     }
+
+    //Add an empty row to the table, so that it can be clicked to create a new object
+    var extraRow = Array(columns.length).fill([<Cell className="extra-row" value={""}/>]);
+    extraRow.push(<Cell className="extra-row extra-col" value={""}/>)
+
     return (
     <table row className="excel">
         <tr className="excel-row">
             {colElems}
         </tr>
         {content}
+        <tr className="excel-row">
+            {extraRow}
+        </tr>
     </table>)
 }
 
 const Home = ({params}) => {
     const workColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
     const otherColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
-    const works = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
+    const works = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
     const others = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
 
     console.log(params)

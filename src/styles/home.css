@@ -14,6 +14,10 @@
     font-weight: normal;
 }
 
+.home-main hr {
+    margin-inline: -2vw;
+}
+
 .excel {
     display: flex;
     flex-direction: column;
