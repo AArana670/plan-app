@@ -48,10 +48,10 @@ const ProjectHeader = ({id, current, params}) => {
         <a className="header-home" href={"/project/"+id}>
           <img src="/icons/home.svg" alt="home" />
         </a>
-        <a className="header-calendar" href={"/project/"+id+"/calendar"}>
+        <a className="header-calendar" href={current=="calendar" ? "javascript:void(0)" : "/project/"+id+"/calendar"}>
           <img src="/icons/calendar.svg" alt="calendar" />
         </a>
-        <a className="header-users" href={"/project/"+id+"/users"}>
+        <a className="header-users" href={current=="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
         </a>
         <button className="header-btn">
@@ -60,9 +60,9 @@ const ProjectHeader = ({id, current, params}) => {
       </div>
       <div>
         <Notifications alert={5}/>
-        <div className="header-user">
-          <img src="/icons/user-circle.svg" alt="user" />
-        </div>
+        <a className="header-user" href={current=="profile" ? "javascript:void(0)" : "/project/"+id+"/profile"}>
+          <img src="/icons/user-circle.svg" alt="profile" />
+        </a>
       </div>
     </header>
   );
