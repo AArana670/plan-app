@@ -52,9 +52,32 @@
 
 .popup-main {
     background-color: white;
+    color: black;
     width: fit-content;
+    align-content: center;
+    padding: 30px;
+}
+
+.invite-options {
+    background-color: #eaddff;
+    border: 3px solid #5a28ff;
+    border-radius: 10px;
+    margin-left: -10px;
+    width: 100%;
+    padding: 10px;
     align-items: center;
     align-self: center;
     align-content: center;
     text-align: center;
+}
+
+.invite-option {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-self: center;
+    align-content: center;
+    text-align: center;
+    justify-content: space-between;
+    width: 100%;
 }

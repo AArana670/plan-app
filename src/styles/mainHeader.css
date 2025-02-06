@@ -60,3 +60,9 @@
     padding-inline: 5px;
     font-size: medium;
 }
+
+.chat {
+    background-color: white;
+    color: black;
+    height: 100%;
+}

@@ -5,6 +5,37 @@ import {IconButton} from "../components/buttons"
 import { Dialog } from '@base-ui-components/react/dialog';
 import styles from '../styles/index.module.css';
 
+const InviteDialog = ({id, roles}) => {
+
+    function copy(){
+        navigator.clipboard.writeText("plan.app/invite/"+id)
+    }
+
+    return (
+        <div className="popup-main">
+            <h3>Invitar a {id}</h3>
+            <div className="invite-options">
+                <div className="invite-option">
+                    <input placeholder="correo electrónico" />
+                    <select className="role-select" id={"invite-role"}>
+                        {roles.map((role) => {
+                            return <option>{role}</option>
+                        })}
+                    </select>
+                    <Dialog.Close className="main-btn">Invitar</Dialog.Close>
+                </div>
+                <hr/>
+                <div className="invite-option">
+                    <p>Enlace de invitación</p>
+                    <input disabled id="invite-link" value={"plan.app/invite/"+id} />
+                    <Dialog.Close className="main-btn" onClick={copy}>Copiar Enlace</Dialog.Close>
+                </div>
+            </div>
+        </div>
+    )
+
+}
+
 const UserList = ({users, roles}) => {
 
     function updateUsers(event) {
@@ -38,7 +69,7 @@ const UserList = ({users, roles}) => {
 }
 
 const Users = ({id, params}) => {
-    const users = [{name: "Usuario 1", role: "Transportista"}, {name: "Usuario 2", role: "Transportista"}, {name: "Usuario 3", role: "Administrador"}, {name: "Usuario 1", role: "Transportista"}]
+    const users = [{name: "Usuario 1", role: "Transportista"}, {name: "Usuario 2", role: "Transportista"}, {name: "Usuario 3", role: "Administrador"}, {name: "Usuario 4", role: "Transportista"}]
     const roles = ["Transportista", "Administrador", "Supervisor", "Operario"]
 
     return (
@@ -54,13 +85,7 @@ const Users = ({id, params}) => {
                         <Dialog.Portal keepMounted>
                             <Dialog.Backdrop className={styles.Backdrop} />
                             <Dialog.Popup className={styles.Popup}>
-                                <div className="popup-main">
-                                    <input placeholder="Enter your name" />
-                                    <input placeholder="Enter your email" />
-                                    <div>
-                                        <Dialog.Close className="main-btn">Close</Dialog.Close>
-                                    </div>
-                                </div>
+                                <InviteDialog id={params.id} roles={roles}/>
                             </Dialog.Popup>
                         </Dialog.Portal>
                     </Dialog.Root>

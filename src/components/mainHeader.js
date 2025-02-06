@@ -1,6 +1,9 @@
 import React from "react";
 import "../styles/mainHeader.css";
 import { Redirect } from "wouter";
+import { Sidebar } from 'primereact/sidebar';
+import { useState } from 'react';
+        
 
 const Notifications = ({alert}) => {
   if (alert==0) return (
@@ -21,6 +24,8 @@ const Notifications = ({alert}) => {
 }
 
 const ProjectHeader = ({id, current, params}) => {
+  let [visibleChat, setVisibleChat] = useState(false);
+
   if (!id) {
     return (
       <header className="header">
@@ -55,7 +60,7 @@ const ProjectHeader = ({id, current, params}) => {
           <img src="/icons/users.svg" alt="users" />
         </a>
         <button className="header-btn">
-          <img src="/icons/chat.svg" alt="chat" />
+          <img src="/icons/chat.svg" alt="chat" onClick={() => setVisibleChat(!visibleChat)} />
         </button>
       </div>
       <div>
@@ -64,6 +69,16 @@ const ProjectHeader = ({id, current, params}) => {
           <img src="/icons/user-circle.svg" alt="profile" />
         </a>
       </div>
+      <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
+        content={()=>(
+        <div className="chat">
+          <h2>Right Sidebar</h2>
+          <h3>{id}</h3>
+          <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </div>)}/>
     </header>
   );
 };
