@@ -3,7 +3,39 @@ import "../styles/mainHeader.css";
 import { Redirect } from "wouter";
 import { Sidebar } from 'primereact/sidebar';
 import { useState } from 'react';
-        
+import { Menu } from '@base-ui-components/react/menu';
+
+
+function Chat({id}) {
+  return(
+  <div className="chat">
+    <h2>Right Sidebar</h2>
+    <h3>{id}</h3>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    </p>
+  </div>);
+}
+
+function Profile({userId}) {
+  return (
+    <Menu.Root>
+      <Menu.Trigger className="header-btn">
+        <img src="/icons/user-circle.svg" alt="profile" />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner className="profile-menu" sideOffset={8}>
+          <Menu.Popup className="profile-options">
+            <a href={"/profile/"+userId}><Menu.Item className="profile-option">Perfil</Menu.Item></a>
+            <Menu.Item className="profile-option">Ajustes</Menu.Item>
+            <Menu.Item className="profile-option">Cerrar Sesión</Menu.Item>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
+}
 
 const Notifications = ({alert}) => {
   if (alert==0) return (
@@ -23,7 +55,7 @@ const Notifications = ({alert}) => {
   </div>)
 }
 
-const ProjectHeader = ({id, current, params}) => {
+const ProjectHeader = ({id, current, userId, params}) => {
   let [visibleChat, setVisibleChat] = useState(false);
 
   if (!id) {
@@ -65,20 +97,11 @@ const ProjectHeader = ({id, current, params}) => {
       </div>
       <div>
         <Notifications alert={5}/>
-        <a className="header-user" href={current=="profile" ? "javascript:void(0)" : "/project/"+id+"/profile"}>
-          <img src="/icons/user-circle.svg" alt="profile" />
-        </a>
+        <Profile userId={userId} current={current}/>
       </div>
       <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
         content={()=>(
-        <div className="chat">
-          <h2>Right Sidebar</h2>
-          <h3>{id}</h3>
-          <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </div>)}/>
+        <Chat id={id}/>)}/>
     </header>
   );
 };
