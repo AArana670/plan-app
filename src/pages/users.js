@@ -3,7 +3,7 @@ import "../styles/users.css"
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons"
 import { Dialog } from '@base-ui-components/react/dialog';
-import styles from '../styles/sidebar.css';
+import '../styles/sidebar.css';
 
 const InviteDialog = ({id, roles}) => {
 
@@ -79,12 +79,12 @@ const Users = ({id, params}) => {
                 <UserList users={users} roles={roles}/>
                 <div className="buttons">
                     <Dialog.Root>
-                        <Dialog.Trigger className={styles.Button}>
+                        <Dialog.Trigger className="dialog-btn">
                             <IconButton id="user-add-btn" disabled src="/icons/user-add.svg"/>
                         </Dialog.Trigger>
                         <Dialog.Portal keepMounted>
-                            <Dialog.Backdrop className={styles.Backdrop} />
-                            <Dialog.Popup className={styles.Popup}>
+                            <Dialog.Backdrop className="dialog-background" />
+                            <Dialog.Popup className="dialog-main">
                                 <InviteDialog id={params.id} roles={roles}/>
                             </Dialog.Popup>
                         </Dialog.Portal>

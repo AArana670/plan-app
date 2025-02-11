@@ -1,6 +1,6 @@
 import React from "react";
 import "../styles/mainHeader.css";
-import { Redirect } from "wouter";
+//import { Redirect } from "wouter";
 import { Sidebar } from 'primereact/sidebar';
 import { useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
@@ -38,7 +38,7 @@ function Profile({userId}) {
 }
 
 const Notifications = ({alert}) => {
-  if (alert==0) return (
+  if (alert===0) return (
   <div className="header-notifications">
     <button className="header-btn">
       <img src="/icons/notifications.svg" alt="notifications" />
@@ -85,10 +85,10 @@ const ProjectHeader = ({id, current, userId, params}) => {
         <a className="header-home" href={"/project/"+id}>
           <img src="/icons/home.svg" alt="home" />
         </a>
-        <a className="header-calendar" href={current=="calendar" ? "javascript:void(0)" : "/project/"+id+"/calendar"}>
+        <a className="header-calendar" href={current==="calendar" ? "javascript:void(0)" : "/project/"+id+"/calendar"}>
           <img src="/icons/calendar.svg" alt="calendar" />
         </a>
-        <a className="header-users" href={current=="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
+        <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
         </a>
         <button className="header-btn">
