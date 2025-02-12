@@ -1,3 +1,6 @@
 .calendar-main {
     color: #5a28ff;
+    width: 80%;
+    margin-inline: 9%;
+    margin-block: 5%;
 }
