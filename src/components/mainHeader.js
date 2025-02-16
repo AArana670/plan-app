@@ -18,6 +18,11 @@ function Chat({id}) {
   </div>);
 }
 
+const signOut= () => {
+  sessionStorage.removeItem('userId');
+  window.location.href = "/login";
+}
+
 function Profile({userId}) {
   return (
     <Menu.Root>
@@ -28,8 +33,8 @@ function Profile({userId}) {
         <Menu.Positioner className="profile-menu" sideOffset={8}>
           <Menu.Popup className="profile-options">
             <a href={"/profile/"+userId}><Menu.Item className="profile-option">Perfil</Menu.Item></a>
-            <Menu.Item className="profile-option">Ajustes</Menu.Item>
-            <Menu.Item className="profile-option">Cerrar Sesión</Menu.Item>
+            <a href={"/settings"}><Menu.Item className="profile-option">Ajustes</Menu.Item></a>
+            <Menu.Item className="profile-option" onClick={signOut}>Cerrar Sesión</Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
@@ -55,8 +60,14 @@ const Notifications = ({alert}) => {
   </div>)
 }
 
-const ProjectHeader = ({id, current, userId, params}) => {
+function getUserId() {
+  const userId = sessionStorage.getItem('userId');
+  return userId;
+}
+
+const ProjectHeader = ({id, current, params}) => {
   let [visibleChat, setVisibleChat] = useState(false);
+  let userId = getUserId();
 
   if (!id) {
     return (
@@ -66,9 +77,7 @@ const ProjectHeader = ({id, current, userId, params}) => {
         </a>
         <div>
           <Notifications alert={1}/>
-          <div className="header_user">
-            <img src="/icons/user-circle.svg" alt="user" />
-          </div>
+          <Profile userId={userId} current={current}/>
         </div>
       </header>
     );

@@ -26,6 +26,7 @@ const Login = () => {
                     }
                 });
             };*/
+            sessionStorage.setItem("userId", "Rincewind");
             window.location.href = "/projects";
             e.preventDefault();
     }

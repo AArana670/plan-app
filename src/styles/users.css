@@ -24,8 +24,8 @@
     width: 90%;
     border: 3px solid #5a28ff;
     border-radius: 20px;
-    padding-inline: 2vw;
-    padding-block: 2vh;
+    padding-inline: 30px;
+    padding-block: 15px;
     font-size: x-large;
     color:black;
     display: flex;

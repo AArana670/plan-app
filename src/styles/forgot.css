@@ -1,9 +1,6 @@
-body {
-    color: white;
-}
-
 .split{
   /*height: 100vh;*/
+  color: white;
   display:flex
 }
 
