@@ -7,14 +7,25 @@ import { Menu } from '@base-ui-components/react/menu';
 
 
 function Chat({id}) {
+  const messages = [{sender: "U1", message: "Hola, ¿cómo estás?"}, 
+                    {sender: "U2", message: "Bien, y tú?"}, 
+                    {sender: "U1", message: "Bien también."}, 
+                    {sender: "U2", message: "¿Qué planes tienes para hoy?"}, 
+                    {sender: "U1", message: "Nada, solo quedarme en casa."}, 
+                    {sender: "U2", message: "Ok, nos vemos luego."}]
+
+  const chat = messages.map((message) => {
+    return (
+      <div className="chat-message">
+        <div className="chat-sender">{message.sender}</div>
+        <div className="chat-text">{message.message}</div>
+      </div>
+    )
+  })
+
   return(
   <div className="chat">
-    <h2>Right Sidebar</h2>
-    <h3>{id}</h3>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-    </p>
+    {chat}
   </div>);
 }
 
