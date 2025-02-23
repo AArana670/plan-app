@@ -7,20 +7,36 @@ import { Menu } from '@base-ui-components/react/menu';
 
 
 function Chat({id}) {
-  const messages = [{sender: "U1", message: "Hola, ¿cómo estás?"}, 
-                    {sender: "U2", message: "Bien, y tú?"}, 
-                    {sender: "U1", message: "Bien también."}, 
-                    {sender: "U2", message: "¿Qué planes tienes para hoy?"}, 
-                    {sender: "U1", message: "Nada, solo quedarme en casa."}, 
-                    {sender: "U2", message: "Ok, nos vemos luego."}]
+  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
+                    {type: "message", sender: "U2", message: "Ok, nos vemos luego."}, 
+                    {type: "message", sender: "U1", message: "Nada, solo quedarme en casa."}, 
+                    {type: "message", sender: "U2", message: "¿Qué planes tienes para hoy?"}, 
+                    {type: "message", sender: "U1", message: "Bien también."}, 
+                    {type: "message", sender: "U2", message: "Bien, y tú?"}, 
+                    {type: "message", sender: "U1", message: "Hola, ¿cómo estás?"}]
 
   const chat = messages.map((message) => {
-    return (
-      <div className="chat-message">
-        <div className="chat-sender">{message.sender}</div>
-        <div className="chat-text">{message.message}</div>
-      </div>
-    )
+    if (message.type==="comment") {
+      return (
+        <div className="chat-message">
+          <div className="chat-sender" alt={message.sender}>{message.sender}</div>
+          <div className="chat-comment">
+            <div className="chat-comment-header">
+              <p className="chat-comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </p>
+              <div className="chat-comment-value">{message.value}</div>
+            </div>
+            <div className="chat-text">{message.message}</div>
+          </div>
+        </div>
+      )
+    } else {
+      return (
+        <div className="chat-message">
+          <div className="chat-sender" alt={message.sender}>{message.sender}</div>
+          <div className="chat-text">{message.message}</div>
+        </div>
+      )
+    }
   })
 
   return(
@@ -111,7 +127,7 @@ const ProjectHeader = ({id, current, params}) => {
         <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
         </a>
-        <button className="header-btn">
+        <button className="header-btn header-chat">
           <img src="/icons/chat.svg" alt="chat" onClick={() => setVisibleChat(!visibleChat)} />
         </button>
       </div>

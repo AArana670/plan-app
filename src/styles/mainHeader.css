@@ -63,12 +63,20 @@
     font-size: medium;
 }
 
+.header-chat {
+    cursor: pointer;
+}
+
+.p-sidebar-mask {
+    background-color: #44444444; /*Main Jhin be like*/
+}
+
 .chat {
     background-color: white;
     color: black;
     height: 100%;
     display: flex;
-    flex-flow: column;
+    flex-flow: column-reverse;
     gap: 10px;
     align-items: center;
     padding-block: 20px;
@@ -82,6 +90,16 @@
     border-radius: 10px;
     padding: 5px;
     background-color: #eaddff;
+}
+
+.chat-comment {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-comment-header {
+    display: flex;
+    align-items: center;
 }
 
 .chat-sender {
@@ -100,6 +118,21 @@
     border: 2px solid #5a28ff;
     border-radius: 8px;
     background-color: #f9f5ff;
+}
+
+.chat-comment-key {
+    margin: 6px;
+}
+
+.chat-comment-value {
+    width: fit-content;
+    height: fit-content;
+    padding-block: 8px;
+    padding-inline: 12px;
+    border: 2px solid #5a28ff;
+    border-radius: 8px;
+    background-color: #f9f5ff;
+    text-align: center;
 }
 
 .profile-menu {
