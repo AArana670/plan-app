@@ -22,8 +22,8 @@ function Chat({id}) {
           <div className="chat-sender" alt={message.sender}>{message.sender}</div>
           <div className="chat-comment">
             <div className="chat-comment-header">
-              <p className="chat-comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </p>
-              <div className="chat-comment-value">{message.value}</div>
+              <span className="chat-comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+              <span className="chat-comment-value">{message.value}</span>
             </div>
             <div className="chat-text">{message.message}</div>
           </div>

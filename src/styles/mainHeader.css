@@ -104,12 +104,12 @@
 
 .chat-sender {
     border-radius: 50%;
-    width: 2vw;
-    height: 2vw;
+    width: 36px;
+    height: 36px;
     border: 1px solid black;
     background-color: azure;
     text-align: center;
-    padding: 9px;
+    padding: 8px;
 }
 
 .chat-text {
@@ -125,7 +125,7 @@
 }
 
 .chat-comment-value {
-    width: fit-content;
+    width: 130px;
     height: fit-content;
     padding-block: 8px;
     padding-inline: 12px;
@@ -133,6 +133,10 @@
     border-radius: 8px;
     background-color: #f9f5ff;
     text-align: center;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .profile-menu {
