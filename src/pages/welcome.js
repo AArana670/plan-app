@@ -21,7 +21,7 @@ const Welcome = () => {
                 <HeaderBtn className="header-link" path="#services">Servicios</HeaderBtn>
                 <HeaderBtn className="header-link" path="#contact">Contacto</HeaderBtn>
             </header>
-            <main>
+            <main className="welcome-main">
                 <article id="welcome">
                     <h1>
                         Bienvenido

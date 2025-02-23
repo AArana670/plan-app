@@ -4,11 +4,6 @@
   display:flex
 }
 
-a {
-  text-decoration: none;
-  color: white;
-}
-
 .form-half {
     background-color: #5a28ff;
     height: 100vh;
@@ -19,6 +14,11 @@ a {
     justify-content: center;
     padding-inline: 5vw;
     text-align: left;
+}
+
+.form-half a {
+  text-decoration: none;
+  color: white;
 }
 
 .login h1 {
