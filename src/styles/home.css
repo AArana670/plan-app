@@ -39,3 +39,13 @@
 .cell input {
     border-radius: 0;
 }
+
+.upload-area {
+    width: 30vw;
+    height: 15vh;
+    align-content: center;
+    text-align: center;
+    background-color: #eaddff;
+    border: 2px solid #5a28ff;
+    border-radius: 20px;
+}

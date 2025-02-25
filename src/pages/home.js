@@ -1,8 +1,46 @@
 import React, { useState } from "react";
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
+import { Dialog } from '@base-ui-components/react/dialog';
 import "../styles/home.css";
 import { Redirect } from "wouter";
+
+
+const UploadDialog = ({grid, setGrid}) => {
+
+    function uploadFile(event) {
+        alert("Feature not implemented yet")
+        event.preventDefault();
+        /*const file = event.target.files[0]
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const obj = {};
+                const currentLine = lines[i].split(',');
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = currentLine[j];
+                }
+                rows.push(obj);
+            }
+            setGrid({columns: headers, rows: rows})
+        };
+        reader.readAsText(file);*/
+    }
+
+
+    return (
+        <div className="popup-main">
+            <div className="upload-area" onDrop={uploadFile}>
+                <h2>Sube un archivo </h2>
+            </div>
+        </div>
+    )
+
+}
 
 function Cell({row, col, value, onChangeFun}) {
     return (
@@ -93,7 +131,17 @@ const Home = ({params}) => {
             <main className="home-main">
                 <header>
                     <h2>Obras</h2>
-                    <IconButton id="scan-works" src="/icons/document.svg"/>
+                    <Dialog.Root>
+                        <Dialog.Trigger className="dialog-btn">
+                        <IconButton id="scan-works" src="/icons/document.svg"/>
+                        </Dialog.Trigger>
+                        <Dialog.Portal keepMounted>
+                            <Dialog.Backdrop className="dialog-background" />
+                            <Dialog.Popup className="dialog-main">
+                                <UploadDialog id={params.id}/>
+                            </Dialog.Popup>
+                        </Dialog.Portal>
+                    </Dialog.Root>
                 </header>
                 <Excel columns={workColumns} setColumns={setWorkColumns} rows={works} setRows={setWorks}/>
                 <hr/>
