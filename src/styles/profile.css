@@ -1,3 +1,53 @@
-.main-profile {
-    
+.profile-main {
+    background-color: #f9f5ff;
+    height: 100vh;
+}
+
+.profile-form {
+    background-color: white;
+    height: 95vh;
+    margin-top: -4vh;
+    padding-top: 6vh;
+    margin-inline: 10vw;
+    padding-inline: 5vw;
+}
+
+.profile-main div {
+    /*width: 100%;
+    display: flex;
+    justify-content: space-between;*/
+}
+
+.profile-input {
+    height: fit-content;
+    margin-top: 8px;
+    margin-bottom: 30px;
+    padding: 5px;
+    border-radius: 5px;
+    width: 60%;
+}
+
+#form-head {
+    display: flex;
+    align-items: baseline;
+}
+
+#username-field {
+    display: flex;
+    flex-direction: column;
+    width: 65%;
+}
+
+.profile-image {
+    height: 250px;
+    width: 250px;
+    border-radius: 50%;
+    margin: 20px;
+}
+
+.profile-buttons {
+    align-self: center;
+    display: flex;
+    width: fit-content;
+    gap: 100px;
 }

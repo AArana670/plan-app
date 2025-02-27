@@ -18,12 +18,12 @@ function Chat({id}) {
   const chat = messages.map((message) => {
     if (message.type==="comment") {
       return (
-        <div className="chat-message">
-          <div className="chat-sender" alt={message.sender}>{message.sender}</div>
+        <div className="sidebar-message">
+          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
           <div className="chat-comment">
-            <div className="chat-comment-header">
-              <span className="chat-comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
-              <span className="chat-comment-value">{message.value}</span>
+            <div className="comment-header">
+              <span className="comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+              <span className="sidebar-message-value">{message.value}</span>
             </div>
             <div className="chat-text">{message.message}</div>
           </div>
@@ -31,8 +31,8 @@ function Chat({id}) {
       )
     } else {
       return (
-        <div className="chat-message">
-          <div className="chat-sender" alt={message.sender}>{message.sender}</div>
+        <div className="sidebar-message">
+          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
           <div className="chat-text">{message.message}</div>
         </div>
       )
@@ -40,7 +40,7 @@ function Chat({id}) {
   })
 
   return(
-  <div className="chat">
+  <div className="sidebar">
     {chat}
   </div>);
 }
@@ -69,17 +69,58 @@ function Profile({userId}) {
   );
 }
 
-const Notifications = ({alert}) => {
+function Notifications({id}) {
+  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
+                    {type: "change", sender: "U2", column: "Luz", row: "Estatua 2", oldValue: "290", newValue: "320"}]
+
+  const notifications = messages.map((message) => {
+    if (message.type==="comment") {
+      return (
+        <div className="sidebar-message">
+          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
+          <div className="notifications-comment">
+            <div className="comment-header">
+              <span className="comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+              <span className="sidebar-message-value">{message.value}</span>
+            </div>
+            <div className="notifications-text">{message.message}</div>
+          </div>
+        </div>
+      )
+    } else {
+      return (
+        <div className="sidebar-message">
+          <span className="sidebar-message-sender" alt={message.sender}>{message.sender}</span>
+          <div className="change-header">
+            <span className="change-key">Ha modificado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+            <div className="change-body">
+              <span className="sidebar-message-value">{message.oldValue}</span>
+              <span className="change-key"> a </span>
+              <span className="sidebar-message-value">{message.newValue}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  })
+
+  return(
+  <div className="sidebar">
+    {notifications}
+  </div>);
+}
+
+function NotificationsBtn({alert, onClick}) {
   if (alert===0) return (
   <div className="header-notifications">
     <button className="header-btn">
-      <img src="/icons/notifications.svg" alt="notifications" />
+      <img src="/icons/notifications.svg" alt="notifications" onClick={onClick} />
     </button>
   </div>)
   return (
   <div className="header-notifications">
     <button className="header-btn">
-      <img src="/icons/notifications.svg" alt="notifications" />
+      <img src="/icons/notifications.svg" alt="notifications" onClick={onClick} />
       <div className="alert">
         {alert}
       </div>
@@ -94,6 +135,7 @@ function getUserId() {
 
 const ProjectHeader = ({id, current, params}) => {
   let [visibleChat, setVisibleChat] = useState(false);
+  let [visibleNotifications, setVisibleNotifications] = useState(false);
   let userId = getUserId();
 
   if (!id) {
@@ -103,9 +145,12 @@ const ProjectHeader = ({id, current, params}) => {
           <img src="/icons/menu.svg" alt="Menu" />
         </a>
         <div>
-          <Notifications alert={1}/>
+          <NotificationsBtn alert={1} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
           <Profile userId={userId} current={current}/>
         </div>
+        <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
+          content={()=>(
+          <Notifications id={id}/>)}/>
       </header>
     );
   }
@@ -132,12 +177,15 @@ const ProjectHeader = ({id, current, params}) => {
         </button>
       </div>
       <div>
-        <Notifications alert={5}/>
+        <NotificationsBtn alert={5} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
         <Profile userId={userId} current={current}/>
       </div>
       <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
         content={()=>(
         <Chat id={id}/>)}/>
+      <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
+        content={()=>(
+        <Notifications id={id}/>)}/>
     </header>
   );
 };
