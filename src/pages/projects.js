@@ -2,7 +2,27 @@ import React from "react";
 import Header from "../components/mainHeader";
 import {MainButton} from "../components/buttons";
 import TaskList from "../components/taskList";
-import "../styles/projects.css"
+import { Dialog } from '@base-ui-components/react/dialog';
+import "../styles/projects.css";
+
+
+const NewProjectDialog = () => {
+
+  return (
+      <div className="popup-main">
+          <h3>Crea un nuevo proyecto</h3>
+          <div className="project-form">
+              <div className="project-fields">
+                  <input type="text" placeholder="Nombre del proyecto" />
+                  <hr/>
+                  <textarea placeholder="descripción" />
+              </div>
+          </div>
+          <Dialog.Close className="main-btn">Crear proyecto</Dialog.Close>
+      </div>
+  )
+
+}
 
 const CardList = ({cards}) => {
   var cardElems = [];
@@ -30,7 +50,18 @@ const Projects = () => {
     <div>
       <Header />
       <main className="projects-main">
-      <MainButton id="new-project" text="Nuevo Proyecto"/>
+        <Dialog.Root>
+          <Dialog.Trigger className="dialog-btn">
+            <MainButton id="new-project" text="Nuevo Proyecto"/>
+          </Dialog.Trigger>
+          <Dialog.Portal keepMounted>
+            <Dialog.Backdrop className="dialog-background" />
+            <Dialog.Popup className="dialog-main">
+              <NewProjectDialog/>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
+        
         <CardList cards={cards}/>
         <TaskList tasks={tasks}/>
       </main>

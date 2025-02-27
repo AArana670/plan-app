@@ -8,6 +8,10 @@
     margin-right: 4vw;
 }
 
+.projects-main  .dialog-btn {
+    display: initial;
+}
+
 .cardlist {
     background-color: #efeaff;
     height: fit-content;
@@ -40,4 +44,32 @@
 .card h2 {
     margin-block: 2vh;
     margin-inline: 0.5vw;
+}
+
+.project-form {
+    background-color: #eaddff;
+    border: 3px solid #5a28ff;
+    border-radius: 10px;
+    margin-left: -10px;
+    width: 100%;
+    padding: 10px;
+    align-items: center;
+    align-self: center;
+    align-content: center;
+    text-align: center;
+}
+
+.project-form hr {
+    color: #5a28ff;
+    width: 100%;
+}
+
+.project-fields {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+}
+
+.popup-main .main-btn {
+    margin-top: 15px;
 }

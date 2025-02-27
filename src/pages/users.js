@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../styles/users.css"
 import ProjectHeader from "../components/mainHeader";
-import {IconButton} from "../components/buttons"
+import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
 import '../styles/sidebar.css';
 
