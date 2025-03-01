@@ -7,13 +7,22 @@ import { Menu } from '@base-ui-components/react/menu';
 
 
 function Chat({id}) {
-  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
+  const postMessage = (e) => {
+    e.preventDefault();
+    const message = e.target[0].value;
+    e.target[0].value = "";
+    setMessages([{type: "message", sender: "U1", message: message}, ...messages]);
+  }
+
+  const chatMessages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
                     {type: "message", sender: "U2", message: "Ok, nos vemos luego."}, 
                     {type: "message", sender: "U1", message: "Nada, solo quedarme en casa."}, 
                     {type: "message", sender: "U2", message: "¿Qué planes tienes para hoy?"}, 
                     {type: "message", sender: "U1", message: "Bien también."}, 
                     {type: "message", sender: "U2", message: "Bien, y tú?"}, 
                     {type: "message", sender: "U1", message: "Hola, ¿cómo estás?"}]
+
+  const [messages, setMessages] = useState(chatMessages)
 
   const chat = messages.map((message) => {
     if (message.type==="comment") {
@@ -41,7 +50,12 @@ function Chat({id}) {
 
   return(
   <div className="sidebar">
-    {chat}
+    <div className="sidebar-list">
+      {chat}
+    </div>
+    <form className="chat-form" onSubmit={postMessage}>
+      <input type="text" className="chat-input" placeholder="Escribe un mensaje..."></input>
+    </form>
   </div>);
 }
 
@@ -105,7 +119,7 @@ function Notifications({id}) {
   })
 
   return(
-  <div className="sidebar">
+  <div className="sidebar sidebar-list">
     {notifications}
   </div>);
 }
