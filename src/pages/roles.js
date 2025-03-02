@@ -66,9 +66,6 @@ const AccessList = ({columns, globalAccess, i}) => {
 
 const RolesList = ({roles, accesses, setAccesses, columns}) => {
 
-    console.log(roles)
-    console.log(accesses)
-
     var roleElems = [];
     for (let i in roles){
         roleElems.push(
