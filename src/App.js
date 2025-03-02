@@ -9,6 +9,7 @@ import Projects from "./pages/projects";
 import Home from './pages/home';
 import Calendar from './pages/calendar';
 import Users from './pages/users';
+import Roles from './pages/roles';
 import Profile from './pages/profile';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/project/:id" component={Home} />
         <Route path="/project/:id/calendar" component={Calendar} />
         <Route path="/project/:id/users" component={Users} />
+        <Route path="/project/:id/roles" component={Roles} />
         <Route path="/profile/:username" component={Profile} />
       </Switch>
     </div>

@@ -1,0 +1,68 @@
+.access-options {
+    width: fit-content;
+    height: fit-content;
+}
+
+.roles-list {
+    display: flex;
+    gap: 30px;
+    height: fit-content;
+}
+
+.role {
+    border: 2px solid #5a28ff;
+    border-radius: 10px;
+    background-color: #eaddff;
+    padding: 15px;
+}
+
+.role hr {
+    color: #5a28ff;
+}
+
+.access-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.access {
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    border: 2px solid #5a28ff;
+    background-color: white;
+    border-radius: 5px;
+    padding-inline: 8px;
+    align-items: center;
+}
+
+.access-btn {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.add-role {
+    background-color: #eaddff;
+    border: 3px solid #5a28ff;
+    border-radius: 10px;
+    margin-left: -10px;
+    width: 100%;
+    padding: 10px;
+    padding-top: 50px;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+}
+
+.add-role input {
+    background-color: white;
+    border: 2px solid #5a28ff;
+    border-radius: 5px;
+    padding: 5px;
+    width: 300px;
+    text-align: center;
+}

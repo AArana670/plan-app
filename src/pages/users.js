@@ -89,7 +89,9 @@ const Users = ({id, params}) => {
                             </Dialog.Popup>
                         </Dialog.Portal>
                     </Dialog.Root>
-                    <IconButton id="roles-btn" src="/icons/list.svg"/>
+                    <a href={"/project/"+params.id+"/roles"}>
+                        <IconButton id="roles-btn" src="/icons/list.svg"/>
+                    </a>
                 </div>
             </main>
         </div>

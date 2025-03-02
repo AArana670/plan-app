@@ -147,7 +147,17 @@ const Home = ({params}) => {
                 <hr/>
                 <header>
                     <h2>Otros elementos</h2>
-                    <IconButton id="scan-works" src="/icons/document.svg"/>
+                    <Dialog.Root>
+                        <Dialog.Trigger className="dialog-btn">
+                        <IconButton id="scan-works" src="/icons/document.svg"/>
+                        </Dialog.Trigger>
+                        <Dialog.Portal keepMounted>
+                            <Dialog.Backdrop className="dialog-background" />
+                            <Dialog.Popup className="dialog-main">
+                                <UploadDialog id={params.id}/>
+                            </Dialog.Popup>
+                        </Dialog.Portal>
+                    </Dialog.Root>
                 </header>
                 <Excel columns={otherColumns} setColumns={setOtherColumns} rows={others} setRows={setOthers}/>
             </main>
