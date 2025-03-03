@@ -6,15 +6,16 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction" // needed for dayClick
 import listPlugin from '@fullcalendar/list';
 import { Dialog } from 'primereact/dialog';
+import esLocale from '@fullcalendar/core/locales/es';
 import * as events from 'events';
 
-const NewEventDialog = ({info, selectedDate, visible, setVisible}) => {
+const NewEventDialog = ({selectedDate, visible, setVisible}) => {
     const columns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
 
     return (
         <Dialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
         content={({ hide }) => (
-            <div className="">
+            <div className="dialog-body">
                 <h3>{selectedDate}</h3>
                 <form className="new-event" onSubmit={()=>{return false}}>
                     <div className="new-event-maindata">
@@ -39,41 +40,70 @@ const NewEventDialog = ({info, selectedDate, visible, setVisible}) => {
     )
 }
 
-function openDate (info, events, setSelectedDate, newEventVisible, setNewEventVisible){
-    const selectedEvents = events.filter((event) => event.date === info.dateStr);
-    
-    if (selectedEvents.length > 0)
-        alert("Feature not implemented yet")
-    else
-        newEvent(info, setSelectedDate, newEventVisible, setNewEventVisible);
-
-    setSelectedDate(info.dateStr);
-}
-
-function newEvent (info, setSelectedDate, newEventVisible, setNewEventVisible){
-    setNewEventVisible(!newEventVisible);
-    setSelectedDate(info.dateStr);
+const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents, newVisible, setNewVisible}) => {
+    return (
+        <Dialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
+        content={({ hide }) => (
+            <div className="dialog-body">
+                <h3>{selectedDate}</h3>
+                <div className="event-list" onSubmit={()=>{return false}}>
+                    {dateEvents.map((event) => 
+                        <div className="event">
+                            <div className="event-maindata">
+                                <h4 className="event-title">{event.title}</h4>
+                                <span className="event-time">{"09:00"}</span>
+                                <span> - </span>
+                                <span className="event-time">{"11:00"}</span>
+                            </div>
+                            <p className="event-description">
+                                {"awdosfksejwfoigj esjgvnsgndfogfj ewfpovjbgpfgeowfjv nfo ppovb vbn pofjkbgpfv  bnfefd bvfpokjb mnv pfjvn pobjvv bn ovpjdbn po dfn pojn pojn ponbpovjn pojnrgend fbkkfvo nbfdvpbo mnv òknfopb nm wefkjl mn eponwefpo mn v fn blpsfmnkdvl lpofmn"}
+                            </p>
+                        </div>
+                    )}
+                </div>
+                <button className="main-btn" onClick={(e)=>{setNewVisible(!newVisible); hide(e);}}>Nuevo evento</button>
+            </div>
+        )}>
+        </Dialog>
+    )
 }
 
 const Calendar = ({params}) => {
 
     const [selectedDate, setSelectedDate] = React.useState(null);
     const [newEventVisible, setNewEventVisible] = React.useState(false);
+    const [dateEventsVisible, setDateEventsVisible] = React.useState(false);
+    const [dateEvents, setDateEvents] = React.useState([]);
+    
+    function openDate (info, events, setSelectedDate){
+        const selectedEvents = events.filter((event) => event.date === info.dateStr);
+        
+        if (selectedEvents.length > 0){
+            setDateEvents(selectedEvents);
+            setDateEventsVisible(!dateEventsVisible);
+        } else
+            setNewEventVisible(!newEventVisible);
+
+        setSelectedDate(info.dateStr);
+    }
 
     //datos de ejemplo
     const events = [
         { title: 'event 1', date: '2025-03-01' },
-        { title: 'event 2', date: '2025-03-02' }
+        { title: 'event 2', date: '2025-03-02' },
+        { title: 'event 3', date: '2025-03-02' },
+        { title: 'event 4', date: '2025-03-02' }
     ]
 
     return (
     <div>
         <ProjectHeader id={params.id} current="calendar"/>
         <main className="calendar-main">
-            <FullCalendar plugins={[ listPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" />
+            <FullCalendar plugins={[ listPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" locale={esLocale}/>
             <br/>
-            <FullCalendar plugins={[ dayGridPlugin, interactionPlugin ]} events={events} initialView="dayGridMonth" firstDay={1} height="50vh" dateClick={(info)=>{openDate(info, events, setSelectedDate, newEventVisible, setNewEventVisible)}} />
-            <NewEventDialog selectedDate={selectedDate} visible={newEventVisible} setVisible={setNewEventVisible}/>
+            <FullCalendar plugins={[ dayGridPlugin, interactionPlugin ]} events={events} initialView="dayGridMonth" firstDay={1} height="50vh" locale={esLocale} dateClick={(info)=>{openDate(info, events, setSelectedDate, newEventVisible, setNewEventVisible)}} />
+            <NewEventDialog selectedDate={selectedDate} dateEvents={dateEvents} visible={newEventVisible} setVisible={setNewEventVisible}/>
+            <DateEventsDialog selectedDate={selectedDate} visible={dateEventsVisible} setVisible={setDateEventsVisible} newVisible={newEventVisible} setNewVisible={setNewEventVisible} dateEvents={dateEvents}/>
         </main>
     </div>
     );

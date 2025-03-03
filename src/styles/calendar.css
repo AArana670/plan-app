@@ -7,10 +7,15 @@
 
 .p-dialog {
     background-color: white;
+    padding-bottom: 10px;
 }
 
 .p-dialog-mask {
     background-color: #44444444;
+}
+
+.dialog-body {
+    text-align: center;
 }
 
 .new-event {
@@ -47,4 +52,47 @@
 
 .time-input {
     width: fit-content;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: scroll;
+    max-height: 60vh;
+}
+
+.event {
+    border: 2px solid #5a28ff;
+    border-radius: 10px;
+    background-color: #eaddff;
+    margin-inline: 20px;
+    padding-inline: 10px;
+}
+
+.event-maindata {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.event-title {
+    margin-inline: 50px;
+}
+
+.event-time {
+    border: 1px solid #5a28ff;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.event-description {
+    border: 1px solid #5a28ff;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    max-width: 600px;
+    text-align: left;
 }
