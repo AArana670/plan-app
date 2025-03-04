@@ -9,6 +9,18 @@ import { Dialog } from 'primereact/dialog';
 import esLocale from '@fullcalendar/core/locales/es';
 import * as events from 'events';
 
+function addEvent(e, date) {
+    e.preventDefault()
+    const form = e.target
+    const title = form[0].value
+    const tag = form[1].value
+    const start = form[2].value
+    const end = form[3].value
+    const description = form[4].value
+    const event = {title: title, date: date, tag: tag, start: start, end: end, description: description}
+    console.log(event)
+}
+
 const NewEventDialog = ({selectedDate, visible, setVisible}) => {
     const columns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
 
@@ -17,7 +29,7 @@ const NewEventDialog = ({selectedDate, visible, setVisible}) => {
         content={({ hide }) => (
             <div className="dialog-body">
                 <h3>{selectedDate}</h3>
-                <form className="new-event" onSubmit={()=>{return false}}>
+                <form className="new-event" onSubmit={(e) => {addEvent(e, selectedDate)}}>
                     <div className="new-event-maindata">
                         <input placeholder="Título" />
                         <select id="tag">
@@ -32,7 +44,7 @@ const NewEventDialog = ({selectedDate, visible, setVisible}) => {
                         <input type="number" className="time-input" min={0} max={59} placeholder="00" />
                     </div>
                     <textarea placeholder="Descripción" />
-                    <button type="submit" className="main-btn" onClick={hide}>Fuera</button>
+                    <button type="submit" className="main-btn" onClick={hide}>Crear</button>
                 </form>
             </div>
         )}>
@@ -99,7 +111,7 @@ const Calendar = ({params}) => {
     <div>
         <ProjectHeader id={params.id} current="calendar"/>
         <main className="calendar-main">
-            <FullCalendar plugins={[ listPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" locale={esLocale}/>
+            <FullCalendar plugins={[ listPlugin, interactionPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" locale={esLocale} dateClick={(info)=>{openDate(info, events, setSelectedDate, newEventVisible, setNewEventVisible)}}/>
             <br/>
             <FullCalendar plugins={[ dayGridPlugin, interactionPlugin ]} events={events} initialView="dayGridMonth" firstDay={1} height="50vh" locale={esLocale} dateClick={(info)=>{openDate(info, events, setSelectedDate, newEventVisible, setNewEventVisible)}} />
             <NewEventDialog selectedDate={selectedDate} dateEvents={dateEvents} visible={newEventVisible} setVisible={setNewEventVisible}/>
