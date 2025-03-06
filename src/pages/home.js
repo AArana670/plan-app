@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
+import { ReactGrid, Column, Row, Id, MenuOption, SelectionMode } from "@silevis/reactgrid";
+import "@silevis/reactgrid/styles.css";
 import "../styles/home.css";
 import { Redirect } from "wouter";
 
@@ -42,17 +44,70 @@ const UploadDialog = ({grid, setGrid}) => {
 
 }
 
-function Cell({row, col, value, onChangeFun}) {
+/*function Cell({row, col, value, onChangeFun}) {
     return (
         <th className="cell">
             <input type="text" id={row+"-"+col} onChange={onChangeFun} onFocus={(event) => event.target.select()} className="cell-input" defaultValue={value}/>
         </th>
     )
-}
+}*/
 
-const Excel = ({columns, setColumns, rows, setRows, params}) => {
+const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 
-    function addColumn(event) {
+    const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column, width: 150, resizable: true }})
+
+    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: "header", text: column }})}}
+    
+    const applyChangesToRows = (
+        changes,
+        prevRows
+      ) => {
+        changes.forEach((change) => {
+          const idx = change.rowId;
+          const fieldName = change.columnId;
+          prevRows[idx][fieldName] = change.newCell.text;
+        });
+        return [...prevRows];
+      };
+
+    const handleChanges = (changes) => { 
+        setRows((rows) => applyChangesToRows(changes, rows));
+        console.log(rows)
+    };
+
+    const handleContextMenu = (
+        selectedRowIds,
+        selectedColIds,
+        selectionMode,
+        menuOptions,
+        selectedRanges
+      ) => {
+        console.log(selectedRanges)
+        console.log(rows)
+        return [{
+            id: "addRow",
+            label: "Añadir fila debajo",
+            handler: () => {
+              setRows([...rows.splice(selectedRanges[0].rowId, 0, {})])
+            }
+          }];
+      }
+
+    const getRows = (items, columns) => [
+        headerRow(columns),
+        ...items.map((item, idx) => ({
+          rowId: idx,
+          cells: columns.map((col)=> {return {type: "text", text: item[col]? String(item[col]): ""}} )
+          /*cells: [
+            { type: "text", text: item.name },
+            { type: "text", text: item.surname }
+          ]*/
+        }))
+    ];
+
+    return <ReactGrid rows={getRows(rows, columns)} columns={getColumns(columns)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
+
+    /*function addColumn(event) {
         setColumns([...columns, event.target.value])
     }
 
@@ -110,7 +165,7 @@ const Excel = ({columns, setColumns, rows, setRows, params}) => {
         <tr className="excel-row">
             {extraRow}
         </tr>
-    </table>)
+    </table>)*/
 }
 
 const Home = ({params}) => {
@@ -143,7 +198,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Excel columns={workColumns} setColumns={setWorkColumns} rows={works} setRows={setWorks}/>
+                <Spreadsheet columns={workColumns} setColumns={setWorkColumns} rows={works} setRows={setWorks}/>
                 <hr/>
                 <header>
                     <h2>Otros elementos</h2>
@@ -159,7 +214,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Excel columns={otherColumns} setColumns={setOtherColumns} rows={others} setRows={setOthers}/>
+                <Spreadsheet columns={otherColumns} setColumns={setOtherColumns} rows={others} setRows={setOthers}/>
             </main>
         </div>
     )
