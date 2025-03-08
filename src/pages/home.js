@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
-import { ReactGrid, Column, Row, Id, MenuOption, SelectionMode } from "@silevis/reactgrid";
+import { ReactGrid } from "@silevis/reactgrid";
 import "@silevis/reactgrid/styles.css";
 import "../styles/home.css";
 import { Redirect } from "wouter";
@@ -82,13 +82,13 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
         menuOptions,
         selectedRanges
       ) => {
-        console.log(selectedRanges)
-        console.log(rows)
         return [{
             id: "addRow",
             label: "Añadir fila debajo",
             handler: () => {
-              setRows([...rows.splice(selectedRanges[0].rowId, 0, {})])
+                const newRows = [...rows]
+                newRows.splice(selectedRanges[0][0].rowId+1, 0, {})
+                setRows(newRows)
             }
           }];
       }
@@ -105,7 +105,10 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
         }))
     ];
 
-    return <ReactGrid rows={getRows(rows, columns)} columns={getColumns(columns)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
+    const columnNames = [...columns]
+    columnNames.push("") //Add empty column
+
+    return <ReactGrid rows={getRows(rows, columnNames)} columns={getColumns(columnNames)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
 
     /*function addColumn(event) {
         setColumns([...columns, event.target.value])
