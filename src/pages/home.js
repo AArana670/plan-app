@@ -52,11 +52,15 @@ const UploadDialog = ({grid, setGrid}) => {
     )
 }*/
 
+function hasPermission(subject) {
+    return false
+}
+
 const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 
     const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column, width: 150, resizable: true }})
 
-    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: "header", text: column }})}}
+    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: hasPermission("admin")? "text": "header", text: column }})}}
     
     const applyChangesToRows = (
         changes,
