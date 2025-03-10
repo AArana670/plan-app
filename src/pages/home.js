@@ -91,8 +91,17 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
             label: "Añadir fila debajo",
             handler: () => {
                 const newRows = [...rows]
-                newRows.splice(selectedRanges[0][0].rowId+1, 0, {})
+                newRows.splice((selectedRanges[0][0].rowId)+1, 0, {})
                 setRows(newRows)
+            }
+          },
+          {
+            id: "addColumn",
+            label: "Añadir columna a la derecha",
+            handler: () => {
+                const newColumns = [...columns]
+                newColumns.splice(columns.indexOf(selectedRanges[0][0].columnId)+1, 0, "")
+                setColumns(newColumns)
             }
           }];
       }
@@ -106,7 +115,11 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
             { type: "text", text: item.name },
             { type: "text", text: item.surname }
           ]*/
-        }))
+        })),
+        {
+            rowId: "newRow",
+            cells: columns.map((col)=> {return {type: "text", text: ""}})
+        }
     ];
 
     const columnNames = [...columns]
