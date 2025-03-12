@@ -176,7 +176,7 @@
     text-overflow: ellipsis;
 }
 
-.profile-menu {
+.dropdown-menu {
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -197,7 +197,7 @@
     user-select: none;
 }
 
-.profile-options {
+.dropdown-options {
 box-sizing: border-box;
 padding-block: 0.25rem;
 border-radius: 0.375rem;
@@ -228,7 +228,7 @@ transition:
 }
 }
 
-.profile-option {
+.dropdown-option {
 outline: 0;
 cursor: default;
 user-select: none;

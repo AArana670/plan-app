@@ -41,6 +41,21 @@
     border-top-right-radius: 20px;
 }
 
+.card-overlay {
+    display: flex;
+    justify-content: space-between;
+}
+
+.project-menu-btn {
+    border: none;
+    background-color: transparent;
+}
+
+.project-menu-btn img {
+    width: 30px;
+    height: 30px;
+}
+
 .card h2 {
     margin-block: 2vh;
     margin-inline: 0.5vw;
@@ -50,7 +65,7 @@
     background-color: #eaddff;
     border: 3px solid #5a28ff;
     border-radius: 10px;
-    margin-left: -10px;
+    margin-left: -5px;
     width: 100%;
     padding: 10px;
     align-items: center;
@@ -70,6 +85,23 @@
     width: 500px;
 }
 
-.popup-main .main-btn {
+.popup-main {
+    text-align: center;
+    min-width: 20vw;
+}
+
+.popup-main #newName {
+    width: 400px;
+}
+
+.dialog-buttons {
+    display: flex;
+    flex-direction: row;
+    height: min-content;
+    gap: 10px;
+}
+
+.popup-main button {
     margin-top: 15px;
 }
+

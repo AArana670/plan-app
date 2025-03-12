@@ -18,7 +18,6 @@ function addEvent(e, date) {
     const end = form[3].value
     const description = form[4].value
     const event = {title: title, date: date, tag: tag, start: start, end: end, description: description}
-    console.log(event)
 }
 
 const NewEventDialog = ({selectedDate, visible, setVisible}) => {

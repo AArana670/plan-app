@@ -71,11 +71,11 @@ function Profile({userId}) {
         <img src="/icons/user-circle.svg" alt="profile" />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className="profile-menu" sideOffset={8}>
-          <Menu.Popup className="profile-options">
-            <a href={"/profile/"+userId}><Menu.Item className="profile-option">Perfil</Menu.Item></a>
-            <a href={"/settings"}><Menu.Item className="profile-option">Ajustes</Menu.Item></a>
-            <Menu.Item className="profile-option" onClick={signOut}>Cerrar Sesión</Menu.Item>
+        <Menu.Positioner className="dropdown-menu" sideOffset={8}>
+          <Menu.Popup className="dropdown-options">
+            <a href={"/profile/"+userId}><Menu.Item className="dropdown-option">Perfil</Menu.Item></a>
+            {/*<a href={"/settings"}><Menu.Item className="profile-option">Ajustes</Menu.Item></a>*/}
+            <Menu.Item className="dropdown-option" onClick={signOut}>Cerrar Sesión</Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
