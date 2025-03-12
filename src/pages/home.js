@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
+import { Dialog as TriggerableDialog } from 'primereact/dialog';
 import { ReactGrid } from "@silevis/reactgrid";
 import "@silevis/reactgrid/styles.css";
 import "../styles/home.css";
@@ -56,12 +57,34 @@ function hasPermission(subject) {
     return false
 }
 
+const CommentDialog = ({selectedCell, visible, setVisible}) => {
+    return (
+      <TriggerableDialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
+        content={({ hide }) => (
+          <div className="popup-main">
+              <h3>{"Comenta en " + selectedCell.column + " de " + selectedCell.row}</h3>
+              <form className="project-form" onSubmit={(e)=>e.preventDefault()}>
+                <textarea id="comment" />
+                <div className="dialog-buttons">
+                  <button className="secondary-btn" onClick={hide}>Cancelar</button>
+                  <button className="main-btn" onClick={hide}>Enviar</button>
+                </div>
+              </form>
+          </div>
+        )}>
+        </TriggerableDialog>
+      )
+}
+
 const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 
     const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column, width: 150, resizable: true }})
 
     const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: hasPermission("admin")? "text": "header", text: column }})}}
     
+    const [commentVisible, setCommentVisible] = useState(false);
+    const [selectedCell, setSelectedCell] = useState(null);
+
     const applyChangesToRows = (
         changes,
         prevRows
@@ -103,6 +126,17 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
                 newColumns.splice(columns.indexOf(selectedRanges[0][0].columnId)+1, 0, "")
                 setColumns(newColumns)
             }
+          },
+          {
+            id: "comment",
+            label: "Comentar celda",
+            handler: () => {
+                const row = selectedRanges[0][0].rowId
+                const column = selectedRanges[0][0].columnId
+                const value = rows[row][column]
+                setSelectedCell({row: rows[row][columns[0]], column: column, value: value})
+                setCommentVisible(true)
+            }
           }];
       }
 
@@ -125,7 +159,10 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
     const columnNames = [...columns]
     columnNames.push("") //Add empty column
 
-    return <ReactGrid rows={getRows(rows, columnNames)} columns={getColumns(columnNames)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
+    return  <div>
+                <ReactGrid rows={getRows(rows, columnNames)} columns={getColumns(columnNames)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
+                <CommentDialog selectedCell={selectedCell} visible={commentVisible} setVisible={setCommentVisible}/>
+            </div>
 
     /*function addColumn(event) {
         setColumns([...columns, event.target.value])
