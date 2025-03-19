@@ -12,6 +12,31 @@
     display: initial;
 }
 
+.tabs-header {
+    text-align: center;
+    width: 100%;
+    gap: 20px;
+}
+
+.tablist {
+    margin-left: 100px;
+    display: flex;
+    gap: 20px;
+}
+
+.tab {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: large;
+    margin-inline: 30px;
+    color: gray;
+}
+
+.selected-tab {
+    color: black;
+}
+
 .cardlist {
     background-color: #efeaff;
     height: fit-content;
@@ -87,7 +112,7 @@
 
 .popup-main {
     text-align: center;
-    min-width: 20vw;
+    min-width: 30vw;
 }
 
 .popup-main #newName {

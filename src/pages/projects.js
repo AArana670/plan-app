@@ -64,7 +64,7 @@ const DeleteProjectDialog = ({selectedProject, onSubmit, visible, setVisible}) =
     content={({ hide }) => (
       <div className="popup-main">
         <div className="project-form">
-          <h3>{"¿Estás seguro de que quieres eliminar " + selectedProject + "?"}</h3>
+          <h3>{"¿Estás seguro de que quieres eliminar " + selectedProject.name + "?"}</h3>
           <div className="delete-options">
             <button className="secondary-btn" onClick={hide}>Cancelar</button>
             <button className="main-btn" onClick={(e)=>{onSubmit(selectedProject); hide(e)}}>Eliminar proyecto</button>
@@ -84,7 +84,7 @@ const RenameProjectDialog = ({selectedProject, onSubmit, visible, setVisible}) =
       <div className="popup-main">
           <h3>Renombrar proyecto</h3>
           <form className="project-form" onSubmit={(e)=>e.preventDefault()}>
-            <input id="newName" type="text" placeholder={selectedProject} />
+            <input id="newName" type="text" placeholder={selectedProject.name} />
             <div className="dialog-buttons">
               <button className="secondary-btn" onClick={hide}>Cancelar</button>
               <button className="main-btn" onClick={(e)=>{onSubmit(selectedProject, e.target.parentNode.parentNode.newName.value); hide(e)}}>Confirmar</button>
@@ -102,10 +102,10 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
 
   for (let i in cards) {
     cardElems.push(
-      <a className="card" href={"/project/"+cards[i]}>
-        <img src="https://picsum.photos/200" alt={cards[i]}/>
+      <a className="card" href={"/project/"+cards[i].name}>
+        <img src="https://picsum.photos/200" alt={cards[i].name}/>
         <div className="card-overlay">
-          <h2>{cards[i]}</h2>
+          <h2>{cards[i].name}</h2>
           <Menu.Root>
             <Menu.Trigger className="project-menu-btn">
               <img src="/icons/more.svg" alt="profile" />
@@ -131,9 +131,21 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
   );
 };
 
+const Tabs = ({archived, setArchived}) => {
+  return (
+    <div className="tabs-header">
+        <button className={"tab" + (archived===false? " selected-tab" : "")} onClick={(e)=>setArchived(false)}>Activos</button>
+        <button className={"tab" + (archived===true? " selected-tab" : "")} onClick={(e)=>setArchived(true)}>Archivados</button>
+    </div>
+  );
+};
+
 const Projects = () => {
-  const projectNames = ["Project A", "Project B", "Project C", "Project D", "Project E", "Project F", "Project G", "Project H"];
-  const [projects, setProjects] = React.useState(projectNames);
+  const [archived, setArchived] = React.useState(false);
+
+  const projectList = [{name: "Project A", archived: false}, {name: "Project B", archived: false}, {name: "Project C", archived: true}, {name: "Project D", archived: true}, {name: "Project E", archived: false}, {name: "Project F", archived: true}, {name: "Project G", archived: false}, {name: "Project H", archived: false}];
+  const [projects, setProjects] = React.useState(projectList);
+  const shownProjects = projects.filter((x)=>x.archived==archived);
 
   //datos de ejemplo
   const events = [
@@ -156,18 +168,18 @@ const Projects = () => {
   }
 
   function deleteProject(project) {
-    setProjects(projects.filter((p) => p !== project));
+    setProjects(projectList.filter((p) => p !== project));
   }
   const [deleteVisible, setDeleteVisible] = React.useState(false);
   const [selectedProject, setSelectedProject] = React.useState(null);
 
   function renameProject(project, newName) {
-    setProjects(projects.map((p) => p === project ? newName : p));
+    setProjects(projectList.map((p) => p === project ? {name: newName, archived: p.archived} : p));
   }
   const [renameVisible, setRenameVisible] = React.useState(false);
 
   function addProject(name, description) {
-    setProjects([...projects, name]);
+    setProjects([...projectList, {name: name, archived: false}]);
     return false;
   }
   
@@ -175,6 +187,7 @@ const Projects = () => {
     <div>
       <Header />
       <main className="projects-main">
+        <Tabs archived={archived} setArchived={setArchived}/>
         <Dialog.Root>
           <Dialog.Trigger className="dialog-btn">
             <MainButton id="new-project" text="Nuevo Proyecto"/>
@@ -186,7 +199,7 @@ const Projects = () => {
             </Dialog.Popup>
           </Dialog.Portal>
         </Dialog.Root>
-        <CardList cards={projects} setSelectedProject={setSelectedProject} setDeleteVisible={setDeleteVisible} setRenameVisible={setRenameVisible}/>
+        <CardList cards={shownProjects} setSelectedProject={setSelectedProject} setDeleteVisible={setDeleteVisible} setRenameVisible={setRenameVisible}/>
         <br/>
         <br/>
         <FullCalendar plugins={[ listPlugin, interactionPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" locale={esLocale} eventClick={showEvent}/>
