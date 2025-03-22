@@ -13,12 +13,14 @@
 }
 
 .tabs-header {
+    margin-top: 20px;
     text-align: center;
     width: 100%;
     gap: 20px;
 }
 
 .tablist {
+    margin-top: 20px;
     margin-left: 100px;
     display: flex;
     gap: 20px;

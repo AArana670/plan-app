@@ -76,6 +76,16 @@ const CommentDialog = ({selectedCell, visible, setVisible}) => {
       )
 }
 
+const Tabs = ({values, names, selected, setSelected}) => {
+    return (
+      <div className="tabs-header">
+          <button className={"tab" + (values[0]===selected? " selected-tab" : "")} onClick={(e)=>setSelected(values[0])}>{names[0]}</button>
+          <button className={"tab" + (values[1]===selected? " selected-tab" : "")} onClick={(e)=>setSelected(values[1])}>{names[1]}</button>
+          <button className={"tab" + (values[2]===selected? " selected-tab" : "")} onClick={(e)=>setSelected(values[2])}>{names[2]}</button>
+      </div>
+    );
+  };
+
 const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 
     const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column, width: 150, resizable: true }})
@@ -235,14 +245,24 @@ const Home = ({params}) => {
     const [otherColumns, setOtherColumns] = useState(defaultWorkColumns)
     const [others, setOthers] = useState(defaultOthers)
 
-    
+    const defaultBudget = [{Nombre: "Ilumniación", Coste: "200"}, {Nombre: "Transporte", Coste: "250"}]
+    const defaultBudgetColumns = ["Nombre", "Coste"]
+    const [budgetColumns, setBudgetColumns] = useState(defaultBudgetColumns)
+    const [budget, setBudget] = useState(defaultBudget)
+
+    const [selectedTab, setSelectedTab] = useState("works")
+    const tabValues = ["works", "budget", "others"]
+    const tabNames = ["Obras", "Presupuesto", "Otros"]
+    const current = tabValues.indexOf(selectedTab)
+
     if (!params.id) return <Redirect to="/projects" />;
     return (
         <div>
             <ProjectHeader id={params.id} current="main"/>
             <main className="home-main">
+                <Tabs values={tabValues} names={tabNames} selected={selectedTab} setSelected={setSelectedTab}/>
                 <header>
-                    <h2>Obras</h2>
+                    <h2>{tabNames[current]}</h2>
                     <Dialog.Root>
                         <Dialog.Trigger className="dialog-btn">
                         <IconButton id="scan-works" src="/icons/document.svg"/>
@@ -255,23 +275,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Spreadsheet columns={workColumns} setColumns={setWorkColumns} rows={works} setRows={setWorks}/>
-                <hr/>
-                <header>
-                    <h2>Otros elementos</h2>
-                    <Dialog.Root>
-                        <Dialog.Trigger className="dialog-btn">
-                        <IconButton id="scan-works" src="/icons/document.svg"/>
-                        </Dialog.Trigger>
-                        <Dialog.Portal keepMounted>
-                            <Dialog.Backdrop className="dialog-background" />
-                            <Dialog.Popup className="dialog-main">
-                                <UploadDialog id={params.id}/>
-                            </Dialog.Popup>
-                        </Dialog.Portal>
-                    </Dialog.Root>
-                </header>
-                <Spreadsheet columns={otherColumns} setColumns={setOtherColumns} rows={others} setRows={setOthers}/>
+                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers}/>
             </main>
         </div>
     )
