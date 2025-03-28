@@ -10,6 +10,7 @@ import TaskList from "../components/taskList";
 import { Dialog } from '@base-ui-components/react/dialog';
 import { Menu } from '@base-ui-components/react/menu';
 import "../styles/projects.css";
+import axios from 'axios';
 
 
 const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents}) => {
@@ -143,8 +144,15 @@ const Tabs = ({archived, setArchived}) => {
 const Projects = () => {
   const [archived, setArchived] = React.useState(false);
 
-  const projectList = [{name: "Project A", archived: false}, {name: "Project B", archived: false}, {name: "Project C", archived: true}, {name: "Project D", archived: true}, {name: "Project E", archived: false}, {name: "Project F", archived: true}, {name: "Project G", archived: false}, {name: "Project H", archived: false}];
-  const [projects, setProjects] = React.useState(projectList);
+  //const projectList = [{name: "Project A", archived: false}, {name: "Project B", archived: false}, {name: "Project C", archived: true}, {name: "Project D", archived: true}, {name: "Project E", archived: false}, {name: "Project F", archived: true}, {name: "Project G", archived: false}, {name: "Project H", archived: false}];
+  const [projects, setProjects] = React.useState([]);
+  
+  const projectList = axios.get('http://localhost:8080').then((data) => {
+    setProjects(data.data.projects);
+  })
+
+  console.log(projectList)
+  
   const shownProjects = projects.filter((x)=>x.archived==archived);
 
   //datos de ejemplo
