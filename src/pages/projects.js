@@ -147,11 +147,11 @@ const Projects = () => {
   //const projectList = [{name: "Project A", archived: false}, {name: "Project B", archived: false}, {name: "Project C", archived: true}, {name: "Project D", archived: true}, {name: "Project E", archived: false}, {name: "Project F", archived: true}, {name: "Project G", archived: false}, {name: "Project H", archived: false}];
   const [projects, setProjects] = React.useState([]);
   
-  const projectList = axios.get('http://localhost:8080').then((data) => {
-    setProjects(data.data.projects);
-  })
-
-  console.log(projectList)
+  React.useEffect(() => {
+    axios.get('http://localhost:8080').then((data) => {
+      setProjects(data.data.projects);
+    })
+  }, []);
   
   const shownProjects = projects.filter((x)=>x.archived==archived);
 
@@ -176,18 +176,18 @@ const Projects = () => {
   }
 
   function deleteProject(project) {
-    setProjects(projectList.filter((p) => p !== project));
+    setProjects(projects.filter((p) => p !== project));
   }
   const [deleteVisible, setDeleteVisible] = React.useState(false);
   const [selectedProject, setSelectedProject] = React.useState(null);
 
   function renameProject(project, newName) {
-    setProjects(projectList.map((p) => p === project ? {name: newName, archived: p.archived} : p));
+    setProjects(projects.map((p) => p === project ? {name: newName, archived: p.archived} : p));
   }
   const [renameVisible, setRenameVisible] = React.useState(false);
 
   function addProject(name, description) {
-    setProjects([...projectList, {name: name, archived: false}]);
+    setProjects([...projects, {name: name, archived: false}]);
     return false;
   }
   

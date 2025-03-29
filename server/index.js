@@ -2,11 +2,20 @@ const express = require('express');
 const app = express();
 const port = 8080;
 const cors = require('cors');
+const createClient = require('@libsql/client').createClient
+
+require('dotenv').config()
+
+const turso = createClient({
+  url: process.env.DB_URL,
+  authToken: process.env.DB_TOKEN,
+});
 
 app.use(cors())
 
-app.get('/', (req, res) => {
-  res.json({ projects: [{name: "Project AA", archived: false}, {name: "Project BB", archived: false}, {name: "Project CC", archived: true}, {name: "Project DD", archived: true}, {name: "Project EE", archived: false}, {name: "Project FF", archived: true}, {name: "Project GG", archived: false}, {name: "Project HH", archived: false}] });
+app.get('/', async (req, res) => {
+  data = await turso.execute("SELECT * FROM projects");
+  res.json({ projects: data.rows });
 });
 
 app.listen(port, () => {
