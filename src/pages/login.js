@@ -1,34 +1,22 @@
 import React from "react";
 import "../styles/login.css"
 import { LogoHalf } from "../components/logoHalf";
+import axios from "axios";
 
 const Login = () => {
-    function login(e) {
-        /*return (e) => {
-            e.preventDefault();
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            console.log(email, password);
-            fetch("/api/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log(data);
-                    if (data.success) {
-                        window.location.href = "/projects";
-                    } else {
-                        alert("Error al iniciar sesión");
-                    }
-                });
-            };*/
-            sessionStorage.setItem("userId", "Rincewind");
+    async function login(e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        
+        const res = await axios.post("http://localhost:8080/api/login", { email, password });
+        const data = await res.data;
+        if (res.status === 200) {
+            sessionStorage.setItem("userId", data.user.id);
             window.location.href = "/projects";
-            e.preventDefault();
+        } else {
+            alert("Error al iniciar sesión");
+        }
     }
 
     return (

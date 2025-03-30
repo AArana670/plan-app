@@ -144,18 +144,16 @@ const Tabs = ({archived, setArchived}) => {
 const Projects = () => {
   const [archived, setArchived] = React.useState(false);
 
-  //const projectList = [{name: "Project A", archived: false}, {name: "Project B", archived: false}, {name: "Project C", archived: true}, {name: "Project D", archived: true}, {name: "Project E", archived: false}, {name: "Project F", archived: true}, {name: "Project G", archived: false}, {name: "Project H", archived: false}];
   const [projects, setProjects] = React.useState([]);
   
   React.useEffect(() => {
-    axios.get('http://localhost:8080').then((data) => {
+    axios.get('http://localhost:8080/projects').then((data) => {
       setProjects(data.data.projects);
     })
   }, []);
   
   const shownProjects = projects.filter((x)=>x.archived==archived);
 
-  //datos de ejemplo
   const events = [
     { title: 'event 1', date: '2025-03-01' },
     { title: 'event 2', date: '2025-03-02' },
