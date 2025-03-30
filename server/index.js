@@ -32,9 +32,26 @@ app.get('/projects', async (req, res) => {
 });
 
 app.get('/users/:id/events', async (req, res) => {
-  data = await turso.execute("SELECT * FROM events INNER JOIN event_tags INNER JOIN role_tags INNER JOIN participations WHERE user_id = ?", [req.params.id]);
+  data = await turso.execute("SELECT * FROM events\
+      INNER JOIN event_tags on event_tags.event_id = events.id\
+      INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
+      INNER JOIN participations WHERE user_id = ?", [req.params.id]);
   res.json({ events: data.rows });
 })
+
+app.get('/projects/:id/events', async (req, res) => {
+  if (!req.headers["user-id"]){
+    res.status(401).json({ error: "Missing userId" });
+    return;
+  }
+  data = await turso.execute("SELECT * FROM events\
+      INNER JOIN event_tags on event_tags.event_id = events.id\
+      INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
+      INNER JOIN participations on role_tags.role_id = participations.role_id\
+      WHERE project_id = ? and user_id = ?", [req.params.id, req.headers["user-id"]]);
+  res.json({ events: data.rows });
+})
+
 
 //region auth
 app.post('/api/login', async (req, res) => {

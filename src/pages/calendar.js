@@ -7,7 +7,7 @@ import interactionPlugin from "@fullcalendar/interaction" // needed for dayClick
 import listPlugin from '@fullcalendar/list';
 import { Dialog } from 'primereact/dialog';
 import esLocale from '@fullcalendar/core/locales/es';
-import * as events from 'events';
+import axios from 'axios';
 
 function addEvent(e, date) {
     e.preventDefault()
@@ -98,13 +98,13 @@ const Calendar = ({params}) => {
         setSelectedDate(info.dateStr);
     }
 
-    //datos de ejemplo
-    const events = [
-        { title: 'event 1', date: '2025-03-01' },
-        { title: 'event 2', date: '2025-03-02' },
-        { title: 'event 3', date: '2025-03-02' },
-        { title: 'event 4', date: '2025-03-02' }
-    ]
+    const [events, setEvents] = React.useState([]);
+    React.useEffect(() => {
+        axios.get('http://localhost:8080/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
+        console.log(data)
+        setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
+        })
+    }, []);
 
     return (
     <div>

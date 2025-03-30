@@ -103,7 +103,7 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
 
   for (let i in cards) {
     cardElems.push(
-      <a className="card" href={"/project/"+cards[i].name}>
+      <a className="card" href={"/project/"+cards[i].id}>
         <img src="https://picsum.photos/200" alt={cards[i].name}/>
         <div className="card-overlay">
           <h2>{cards[i].name}</h2>
@@ -154,12 +154,13 @@ const Projects = () => {
   
   const shownProjects = projects.filter((x)=>x.archived==archived);
 
-  const events = [
-    { title: 'event 1', date: '2025-03-01' },
-    { title: 'event 2', date: '2025-03-02' },
-    { title: 'event 3', date: '2025-03-02' },
-    { title: 'event 4', date: '2025-03-02' }
-  ]
+  const [events, setEvents] = React.useState([]);
+  React.useEffect(() => {
+    axios.get('http://localhost:8080/users/'+sessionStorage.getItem('userId')+'/events').then((data) => {
+      console.log(data)
+      setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
+    })
+  }, []);
 
   const [selectedDate, setSelectedDate] = React.useState(null);
   const [dateEventsVisible, setDateEventsVisible] = React.useState(false);
