@@ -100,7 +100,7 @@ const Calendar = ({params}) => {
 
     const [events, setEvents] = React.useState([]);
     React.useEffect(() => {
-        axios.get('http://localhost:8080/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
+        axios.get('http://localhost:8080/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
         console.log(data)
         setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
         })

@@ -26,12 +26,12 @@ const corsOptions = {
 app.use(cors())
 app.use(express.json())
 
-app.get('/projects', async (req, res) => {
+app.get('/api/projects', async (req, res) => {
   data = await turso.execute("SELECT * FROM projects");
   res.json({ projects: data.rows });
 });
 
-app.get('/users/:id/events', async (req, res) => {
+app.get('/api/users/:id/events', async (req, res) => {
   data = await turso.execute("SELECT * FROM events\
       INNER JOIN event_tags on event_tags.event_id = events.id\
       INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
@@ -39,7 +39,7 @@ app.get('/users/:id/events', async (req, res) => {
   res.json({ events: data.rows });
 })
 
-app.get('/projects/:id/events', async (req, res) => {
+app.get('/api/projects/:id/events', async (req, res) => {
   if (!req.headers["user-id"]){
     res.status(401).json({ error: "Missing userId" });
     return;
@@ -53,7 +53,7 @@ app.get('/projects/:id/events', async (req, res) => {
 })
 
 
-//region auth
+//region User Accounts
 app.post('/api/login', async (req, res) => {
   
   if (!req.body.email || !req.body.password) {
@@ -65,12 +65,27 @@ app.post('/api/login', async (req, res) => {
     return;
   }
 
-  data = await turso.execute("SELECT * FROM users WHERE username = ? AND password = ?", [req.body.email, req.body.password]);
+  data = await turso.execute("SELECT * FROM users WHERE email = ? AND password = ?", [req.body.email, req.body.password]);
   if (data.rows.length == 0)
     res.status(401).json({ error: "Invalid credentials" });
   else
     res.json({ user: data.rows[0] });
 })
+
+app.put('/api/users/:id', async (req, res) => {
+
+  if (req.body.email && !req.body.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
+    res.status(400).json({ error: "Invalid email" });
+    return;
+  }
+
+  if (req.body.password)
+    await turso.execute("UPDATE users SET password = ? WHERE id = ?", [req.body.password, req.params.id]);
+  if (req.body.email)
+    await turso.execute("UPDATE users SET email = ? WHERE id = ?", [req.body.email, req.params.id]);
+  res.status(200)
+})
+
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

@@ -26,9 +26,9 @@ const Login = () => {
                 <h1>Únete ahora</h1>
                 <form className="login" onSubmit={login}>
                     <label for="email">Correo electrónico</label>
-                    <input id="email" type="text" placeholder="Correo electrónico" />
+                    <input id="email" name="email" type="text" placeholder="Correo electrónico" />
                     <label for="password">Contraseña</label>
-                    <input id="password" type="password" placeholder="Contraseña" />
+                    <input id="password" name="password" type="password" placeholder="Contraseña" />
                     <div className="form-buttons">
                         <button className="main-btn" type="submit">Iniciar sesión</button>
                         <a href="/register">
