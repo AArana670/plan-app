@@ -26,10 +26,19 @@ const corsOptions = {
 app.use(cors())
 app.use(express.json())
 
+//region Projects
 app.get('/api/projects', async (req, res) => {
   data = await turso.execute("SELECT * FROM projects");
   res.json({ projects: data.rows });
 });
+
+app.post('/api/projects', async (req, res) => {
+  data = await turso.execute("INSERT INTO projects (name, archived, description) VALUES (?, ?, ?)", [req.body.name, req.body.archived, req.body.description]);
+  role = await turso.execute("INSERT INTO roles (name, project_id) VALUES ('admin', ?)", [data.lastInsertRowid]);
+  await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], data.lastInsertRowid, role.lastInsertRowid]);
+  res.json({ project: data.rows[0] });
+});
+
 
 app.get('/api/users/:id/events', async (req, res) => {
   data = await turso.execute("SELECT * FROM events\

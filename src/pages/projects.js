@@ -186,7 +186,9 @@ const Projects = () => {
   const [renameVisible, setRenameVisible] = React.useState(false);
 
   function addProject(name, description) {
-    setProjects([...projects, {name: name, archived: false}]);
+    axios.post('http://localhost:8080/api/projects', {name: name, archived: false, description: description}, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+      setProjects([{id:res.data.project.id, name: name, archived: false}, ...projects]);
+    })
     return false;
   }
   
