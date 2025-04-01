@@ -11,12 +11,6 @@ const turso = createClient({
   authToken: process.env.DB_TOKEN,
 });
 
-/*app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "localhost:3000"); // update to match the domain you will make the request from
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});*/
-
 const corsOptions = {
   origin: '*',
   methods: ['GET', 'POST'],
@@ -80,6 +74,26 @@ app.post('/api/login', async (req, res) => {
   else
     res.json({ user: data.rows[0] });
 })
+
+app.post('/api/register', async (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    res.status(400).json({ error: "Missing email or password" });
+    return;
+  }
+  if (!req.body.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
+    res.status(400).json({ error: "Invalid email" });
+    return;
+  }
+
+  data = await turso.execute("SELECT * FROM users WHERE email = ?", [req.body.email]);
+  if (data.rows.length > 0) {
+    res.status(409).json({ error: "Email already in use" });
+    return;
+  }
+
+  newUser = await turso.execute("INSERT INTO users (email, password) VALUES (?, ?)", [req.body.email, req.body.password]);
+  res.json({ userId: newUser.lastInsertRowid.toString() });
+});
 
 app.put('/api/users/:id', async (req, res) => {
 
