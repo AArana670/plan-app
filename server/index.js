@@ -13,12 +13,16 @@ const turso = createClient({
 
 const corsOptions = {
   origin: '*',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT'],
   allowedHeaders: ['Content-Type']
 };
 
 app.use(cors())
 app.use(express.json())
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
 
 //region Projects
 app.get('/api/projects', async (req, res) => {
@@ -33,12 +37,44 @@ app.post('/api/projects', async (req, res) => {
   res.json({ project: data.rows[0] });
 });
 
+app.put('/api/projects/:id', async (req, res) => {
+  let newValue;
+  try{
+    if (req.body.name){
+      newValue = req.body.name
+      await turso.execute("UPDATE projects SET name = ? WHERE id = ?", [req.body.name, req.params.id]);
+    }
+    if (req.body.archived){
+      newValue = req.body.archived
+      await turso.execute("UPDATE projects SET archived = ? WHERE id = ?", [req.body.archived, req.params.id]);
+    }
+  }catch (e) {
+    res.status(500);
+    return;
+  }
+  res.status(200).json({ project: {id: req.params.id, newValue: newValue} });
+})
+
+app.delete('/api/projects/:id', async (req, res) => {
+  console.log(req.params.id)
+  try{
+    await turso.execute("DELETE FROM projects WHERE id = ?", [req.params.id]);
+  }catch (e) {
+    console.log(e);
+    console.log("500")
+    res.status(500);
+    return;
+  }
+  console.log("200")
+  res.status(200).json({ project: {id: req.params.id} });
+})
+
 
 app.get('/api/users/:id/events', async (req, res) => {
   data = await turso.execute("SELECT * FROM events\
       INNER JOIN event_tags on event_tags.event_id = events.id\
       INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
-      INNER JOIN participations WHERE user_id = ?", [req.params.id]);
+      INNER JOIN participations on participations.role_id = role_tags.role_id WHERE user_id = ?", [req.params.id]);
   res.json({ events: data.rows });
 })
 

@@ -98,7 +98,7 @@ const RenameProjectDialog = ({selectedProject, onSubmit, visible, setVisible}) =
 }
 
 
-const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible}) => {
+const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible, archived, archiveProject}) => {
   var cardElems = [];
 
   for (let i in cards) {
@@ -115,6 +115,7 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
               <Menu.Positioner className="dropdown-menu" sideOffset={8}>
                 <Menu.Popup className="dropdown-options">
                   <Menu.Item className="dropdown-option" onClick={(e)=>{setSelectedProject(cards[i]); setRenameVisible(true)}}>Renombrar</Menu.Item>
+                  <Menu.Item className="dropdown-option" onClick={(e)=>archiveProject(cards[i], !archived)}>{archived? "Desarchivar" : "Archivar"}</Menu.Item>
                   <Menu.Item className="dropdown-option" onClick={(e)=>{setSelectedProject(cards[i]); setDeleteVisible(true)}}>Eliminar</Menu.Item>
                 </Menu.Popup>
               </Menu.Positioner>
@@ -174,15 +175,36 @@ const Projects = () => {
   }
 
   function deleteProject(project) {
-    setProjects(projects.filter((p) => p !== project));
+    axios.delete('http://localhost:8080/api/projects/'+project.id, {headers: {"user-id":sessionStorage.userId}})
+        .then((res)=> {
+          if (res.status == 200) {
+            setProjects(projects.filter((p) => p !== project));
+          }
+        });
   }
+  
   const [deleteVisible, setDeleteVisible] = React.useState(false);
   const [selectedProject, setSelectedProject] = React.useState(null);
 
-  function renameProject(project, newName) {
-    setProjects(projects.map((p) => p === project ? {name: newName, archived: p.archived} : p));
+  async function renameProject(project, newName) {
+    const res = await axios.put('http://localhost:8080/api/projects/'+project.id, {name: newName}, {headers: {"user-id":sessionStorage.userId}});
+    console.log("aver")
+    console.log(res);
+    if (res.status == 200) {
+      setProjects(projects.map((p) => p === project ? {name: newName, archived: p.archived} : p));
+    }
   }
   const [renameVisible, setRenameVisible] = React.useState(false);
+
+  function archiveProject(project, archived) {
+    axios.put('http://localhost:8080/api/projects/'+project.id, {archived: archived}, {headers: {"user-id":sessionStorage.userId}})
+            .then((res)=> {
+              if (res.status == 200) {
+                setProjects(projects.map((p) => p === project ? {name: p.name, archived: archived} : p));
+              }
+            });
+  }
+
 
   function addProject(name, description) {
     axios.post('http://localhost:8080/api/projects', {name: name, archived: false, description: description}, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
@@ -207,7 +229,7 @@ const Projects = () => {
             </Dialog.Popup>
           </Dialog.Portal>
         </Dialog.Root>
-        <CardList cards={shownProjects} setSelectedProject={setSelectedProject} setDeleteVisible={setDeleteVisible} setRenameVisible={setRenameVisible}/>
+        <CardList cards={shownProjects} setSelectedProject={setSelectedProject} setDeleteVisible={setDeleteVisible} setRenameVisible={setRenameVisible} archived={archived} archiveProject={archiveProject}/>
         <br/>
         <br/>
         <FullCalendar plugins={[ listPlugin, interactionPlugin ]} events={events} initialView="listWeek" firstDay={1} height="30vh" locale={esLocale} eventClick={showEvent}/>
