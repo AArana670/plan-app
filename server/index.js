@@ -26,8 +26,13 @@ app.use((req, res, next) => {
 
 //region Projects
 app.get('/api/projects', async (req, res) => {
-  data = await turso.execute("SELECT * FROM projects");
-  res.json({ projects: data.rows });
+  try{
+    data = await turso.execute("SELECT * FROM projects INNER JOIN participations ON participations.project_id = projects.id WHERE user_id = ?", [req.headers["user-id"]]);
+    res.json({ projects: data.rows });
+    return;
+  }catch (e) {
+    res.status(500);
+  }
 });
 
 app.post('/api/projects', async (req, res) => {
@@ -69,7 +74,7 @@ app.delete('/api/projects/:id', async (req, res) => {
   res.status(200).json({ project: {id: req.params.id} });
 })
 
-
+//region Events
 app.get('/api/users/:id/events', async (req, res) => {
   data = await turso.execute("SELECT * FROM events\
       INNER JOIN event_tags on event_tags.event_id = events.id\
@@ -91,6 +96,19 @@ app.get('/api/projects/:id/events', async (req, res) => {
   res.json({ events: data.rows });
 })
 
+//region Roles
+app.get('/api/projects/:id/roles', async (req, res) => {
+  data = await turso.execute("SELECT * FROM roles INNER JOIN participations on participations.role_id = roles.id WHERE participations.project_id = ?", [req.params.id]);
+  res.json({ roles: data.rows });
+})
+
+app.get('/api/projects/:id/users/', async (req, res) => {
+  data = await turso.execute("SELECT * FROM users\
+      INNER JOIN participations on participations.user_id = users.id\
+      INNER JOIN roles on roles.id = participations.role_id\
+      WHERE participations.project_id = ?", [req.params.id]);
+  res.json({ users: data.rows });
+})
 
 //region User Accounts
 app.post('/api/login', async (req, res) => {

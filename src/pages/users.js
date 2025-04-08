@@ -4,6 +4,7 @@ import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
 import '../styles/sidebar.css';
+import axios from "axios";
 
 const InviteDialog = ({id, roles}) => {
 
@@ -36,26 +37,33 @@ const InviteDialog = ({id, roles}) => {
 
 }
 
-const UserList = ({users, roles}) => {
+const UserList = ({projectId, roles}) => {
 
     function updateUsers(event) {
         console.log(event.target.value)
-        let newUsers = [...usersValue]
+        let newUsers = [...users]
         newUsers[event.target.id.split("-")[1]].role = event.target.value
         setUsers(newUsers)
     }
     
-    const [usersValue, setUsers] = useState(users);
+    const [users, setUsers] = useState([]);
+
+    React.useEffect(() => {
+        axios.get("http://localhost:8080/api/projects/"+projectId+"/users").then((res) => {
+            console.log(res.data.users)
+            setUsers(res.data.users)
+        });
+    }, []);
 
     var userElems = []
 
-    for (let i in usersValue){
+    for (let i in users){
         userElems.push(
-        <div className="user" id={usersValue[i].name}>
-            {usersValue[i].name}
+        <div className="user" id={users[i].id}>
+            {users[i].username}
             <select className="role-select" id={"select-"+i} onChange={updateUsers}>
                 {roles.map((role) => {
-                    return <option selected={role===usersValue[i].role}>{role}</option>
+                    return <option selected={role===users[i].name}>{role}</option>
                 })}
             </select>
         </div>)
@@ -69,14 +77,19 @@ const UserList = ({users, roles}) => {
 }
 
 const Users = ({id, params}) => {
-    const users = [{name: "Usuario 1", role: "Transportista"}, {name: "Usuario 2", role: "Transportista"}, {name: "Usuario 3", role: "Administrador"}, {name: "Usuario 4", role: "Transportista"}]
-    const roles = ["Transportista", "Administrador", "Supervisor", "Operario"]
+    const [roles, setRoles] = useState([]);
+
+    React.useEffect(() => {
+        axios.get("http://localhost:8080/api/projects/"+params.id+"/roles").then((res) => {
+            setRoles(res.data.roles.map((role) => role.name))
+        });
+    }, []);
 
     return (
         <div className="users-main">
             <ProjectHeader id={params.id} current="users"/>
             <main>
-                <UserList users={users} roles={roles}/>
+                <UserList projectId={params.id} roles={roles}/>
                 <div className="buttons">
                     <Dialog.Root>
                         <Dialog.Trigger className="dialog-btn">

@@ -148,7 +148,7 @@ const Projects = () => {
   const [projects, setProjects] = React.useState([]);
   
   React.useEffect(() => {
-    axios.get('http://localhost:8080/api/projects').then((data) => {
+    axios.get('http://localhost:8080/api/projects', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
       setProjects(data.data.projects);
     })
   }, []);
@@ -157,7 +157,7 @@ const Projects = () => {
 
   const [events, setEvents] = React.useState([]);
   React.useEffect(() => {
-    axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/events').then((data) => {
+    axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
       setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
     })
   }, []);
