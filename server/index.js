@@ -102,6 +102,16 @@ app.get('/api/projects/:id/roles', async (req, res) => {
   res.json({ roles: data.rows });
 })
 
+app.post('/api/projects/:id/roles', async (req, res) => {
+  role = await turso.execute("INSERT INTO roles (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id]);
+  attributes = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id]);
+  for (let i = 0; i < attributes.rows.length; i++) {
+    await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [role.lastInsertRowid, attributes.rows[i].id]);
+  }
+
+  res.json({ role: role.rows[0] });
+})
+
 app.get('/api/projects/:id/users/', async (req, res) => {
   data = await turso.execute("SELECT * FROM users\
       INNER JOIN participations on participations.user_id = users.id\

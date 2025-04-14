@@ -3,16 +3,21 @@ import ProjectHeader from "../components/mainHeader";
 import { Dialog } from '@base-ui-components/react/dialog';
 import {IconButton} from "../components/buttons";
 import "../styles/roles.css";
+import axios from "axios";
 
-const RoleDialog = ({roles, setRoles, columns, setAccesses}) => {
+const RoleDialog = ({roles, setRoles, columns, setAccesses, id}) => {
 
     function addRole(e) {
         const newRole = document.getElementById("new-role").value
         if (newRole === "")
             return
-        const newRoles = [...roles, newRole]
-        setRoles(newRoles)
-        setAccesses(newRoles.map(() => columns.map(() => 0)))
+        axios.post("http://localhost:8080/api/projects/"+id+"/roles", {
+            name: newRole
+        }).then((res) => {
+            const newRoles = [...roles, newRole]
+            setRoles(newRoles)
+            setAccesses(newRoles.map(() => columns.map(() => 0)))
+        })
     }
 
     return (
@@ -104,7 +109,7 @@ const Roles = ({params}) => {
                         <Dialog.Portal keepMounted>
                             <Dialog.Backdrop className="dialog-background" />
                             <Dialog.Popup className="dialog-main">
-                                <RoleDialog roles={roles} setRoles={setRoles} columns={columns} setAccesses={setAccesses}/>
+                                <RoleDialog roles={roles} setRoles={setRoles} columns={columns} setAccesses={setAccesses} id={params.id}/>
                             </Dialog.Popup>
                         </Dialog.Portal>
                     </Dialog.Root>
