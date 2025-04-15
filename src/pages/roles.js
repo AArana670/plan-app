@@ -5,7 +5,7 @@ import {IconButton} from "../components/buttons";
 import "../styles/roles.css";
 import axios from "axios";
 
-const RoleDialog = ({roles, setRoles, columns, setAccesses, id}) => {
+const RoleDialog = ({roles, setRoles, id}) => {
 
     function addRole(e) {
         const newRole = document.getElementById("new-role").value
@@ -14,9 +14,12 @@ const RoleDialog = ({roles, setRoles, columns, setAccesses, id}) => {
         axios.post("http://localhost:8080/api/projects/"+id+"/roles", {
             name: newRole
         }).then((res) => {
-            const newRoles = [...roles, newRole]
+            const newRoles = {...roles}
+            newRoles[newRole] = {}
+            for (let i in newRoles['admin']){
+                newRoles[newRole][i] = 0
+            }
             setRoles(newRoles)
-            setAccesses(newRoles.map(() => columns.map(() => 0)))
         })
     }
 
@@ -31,31 +34,41 @@ const RoleDialog = ({roles, setRoles, columns, setAccesses, id}) => {
     )
 }
 
-function updateAccess(accesses, setAccesses, i, j) {
-    const newAccesses = [...accesses]
-    newAccesses[i][j] = (accesses[i][j]+1)%3
-    setAccesses(newAccesses)
+function updateAccess(roles, setRoles, r, j, projectId) {
+    const newLevel = (roles[r].accesses[j].level+1)%3
+    const body = {}
+    body[roles[r].accesses[j].id] = newLevel
+    axios.put("http://localhost:8080/api/projects/"+projectId+"/roles/"+roles[r].id, {
+        permissions: body
+    }).then((res) => {
+        if (res.status == 200){
+            const newRoles = {...roles}
+            newRoles[r].accesses[j].level = newLevel
+            setRoles(newRoles)
+        }
+    })
+    
 }
 
-const AccessList = ({columns, globalAccess, i}) => {
-    const [accesses, setAccesses] = globalAccess
-    
-    var accessElems = [];
-    for (let j in columns){
+const AccessList = ({roles, setRoles, r, projectId}) => {
+    const role = roles[r]
 
-        const access = accesses[i][j]
+    var accessElems = [];
+    for (let j in role.accesses){
+
+        const level = role.accesses[j].level
         let btnSrc = ""
-        if (access === 0)
+        if (level === 0)
             btnSrc = "/icons/hidden.svg"
-        else if (access === 1)
+        else if (level === 1)
             btnSrc = "/icons/visible.svg"
         else
             btnSrc = "/icons/edit.svg"
 
         accessElems.push(
-            <div className="access" id={columns[i]}>
-                <span>{columns[j]}</span>
-                <button className="access-btn" onClick={()=>{updateAccess(accesses, setAccesses, i, j)}}>
+            <div className="access" id={j}>
+                <span>{j}</span>
+                <button className="access-btn" onClick={()=>{updateAccess(roles, setRoles, r, j, projectId)}}>
                     <img src={btnSrc}/>
                 </button>
             </div>
@@ -69,15 +82,15 @@ const AccessList = ({columns, globalAccess, i}) => {
     )
 }
 
-const RolesList = ({roles, accesses, setAccesses, columns}) => {
+const RolesList = ({roles, setRoles, projectId}) => {
 
     var roleElems = [];
-    for (let i in roles){
+    for (let r in roles){
         roleElems.push(
-            <div className="role" id={roles[i]}>
-                <h3>{roles[i]}</h3>
+            <div className="role" id={r}>
+                <h3>{r}</h3>
                 <hr/>
-                <AccessList columns={columns} globalAccess={[accesses, setAccesses]} i={i}/>
+                <AccessList roles={roles} setRoles={setRoles} r={r}/>
             </div>
         )
     }
@@ -90,17 +103,32 @@ const RolesList = ({roles, accesses, setAccesses, columns}) => {
 }
 
 const Roles = ({params}) => {
-    const defaultRoles = ["Transportista", "Administrador", "Supervisor", "Operario"];
-    const [roles, setRoles] = useState(defaultRoles);
-    const columns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"];
-    const defaultAccesses = roles.map(() => columns.map(() => 0));
-    const [accesses, setAccesses] = useState(defaultAccesses);
+    const [roles, setRoles] = useState({});
+    useEffect(() => {
+        axios.get("http://localhost:8080/api/projects/"+params.id+"/roles", {headers: {"user-id":sessionStorage.userId}}).then(async (res) => {
+            let firstRoles = {}
+            for (let i in res.data.roles){
+                const role = res.data.roles[i]
+                firstRoles[role.name] = axios.get("http://localhost:8080/api/projects/"+params.id+"/roles/"+role.id, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+                    const accesses = {}
+                    for (let i in res.data.permissions) {
+                        const access = res.data.permissions[i]
+                        accesses[access.name] = {id: access.attribute_id, level: access.level}
+                    }
+                    return [role.name, {id: role.id, accesses: accesses}]
+                })
+            }
+            await Promise.all(Object.values(firstRoles)).then((newRoles) => {
+                setRoles(Object.fromEntries(newRoles))
+            })
+        })
+    }, [])
 
     return (
         <div className="users-main">
             <ProjectHeader id={params.id} current="users"/>
             <main>
-                <RolesList roles={roles} accesses={accesses} setAccesses={setAccesses} columns={columns}/>
+                <RolesList roles={roles} setRoles={setRoles}/>
                 <div className="buttons">
                     <Dialog.Root>
                         <Dialog.Trigger className="dialog-btn">
@@ -109,7 +137,7 @@ const Roles = ({params}) => {
                         <Dialog.Portal keepMounted>
                             <Dialog.Backdrop className="dialog-background" />
                             <Dialog.Popup className="dialog-main">
-                                <RoleDialog roles={roles} setRoles={setRoles} columns={columns} setAccesses={setAccesses} id={params.id}/>
+                                <RoleDialog roles={roles} setRoles={setRoles} id={params.id}/>
                             </Dialog.Popup>
                         </Dialog.Portal>
                     </Dialog.Root>

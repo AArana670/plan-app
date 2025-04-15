@@ -38,6 +38,8 @@ app.get('/api/projects', async (req, res) => {
 app.post('/api/projects', async (req, res) => {
   data = await turso.execute("INSERT INTO projects (name, archived, description) VALUES (?, ?, ?)", [req.body.name, req.body.archived, req.body.description]);
   role = await turso.execute("INSERT INTO roles (name, project_id) VALUES ('admin', ?)", [data.lastInsertRowid]);
+  //TODO: Create default attributes
+  //TODO: Give edit access to every attribute
   await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], data.lastInsertRowid, role.lastInsertRowid]);
   res.json({ project: data.rows[0] });
 });
@@ -61,16 +63,13 @@ app.put('/api/projects/:id', async (req, res) => {
 })
 
 app.delete('/api/projects/:id', async (req, res) => {
-  console.log(req.params.id)
   try{
     await turso.execute("DELETE FROM projects WHERE id = ?", [req.params.id]);
   }catch (e) {
     console.log(e);
-    console.log("500")
     res.status(500);
     return;
   }
-  console.log("200")
   res.status(200).json({ project: {id: req.params.id} });
 })
 
@@ -98,7 +97,7 @@ app.get('/api/projects/:id/events', async (req, res) => {
 
 //region Roles
 app.get('/api/projects/:id/roles', async (req, res) => {
-  data = await turso.execute("SELECT * FROM roles INNER JOIN participations on participations.role_id = roles.id WHERE participations.project_id = ?", [req.params.id]);
+  data = await turso.execute("SELECT * FROM roles WHERE project_id = ?", [req.params.id]);
   res.json({ roles: data.rows });
 })
 
@@ -106,10 +105,27 @@ app.post('/api/projects/:id/roles', async (req, res) => {
   role = await turso.execute("INSERT INTO roles (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id]);
   attributes = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id]);
   for (let i = 0; i < attributes.rows.length; i++) {
-    await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [role.lastInsertRowid, attributes.rows[i].id]);
+    turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [role.lastInsertRowid, attributes.rows[i].id]);
   }
 
   res.json({ role: role.rows[0] });
+})
+
+app.get('/api/projects/:pid/roles/:rid', async (req, res) => {
+  data = await turso.execute("SELECT * FROM role_attributes \
+    INNER JOIN attributes ON attributes.id = role_attributes.attribute_id \
+    WHERE project_id = ? AND role_id = ?", [req.params.pid, req.params.rid]);
+  res.json({ permissions: data.rows });
+})
+
+app.put('/api/projects/:pid/roles/:rid', async (req, res) => {
+  queries = []
+  for (let attrId in req.body.permissions){
+    queries.push(turso.execute("UPDATE role_attributes SET level = ? WHERE role_id = ? AND attribute_id = ?", [req.body.permissions[attrId], req.params.rid, attrId]));
+  }
+  Promise.all(queries).then((results) => {
+    res.json({ role: {id: req.params.rid} });
+  })
 })
 
 app.get('/api/projects/:id/users/', async (req, res) => {
