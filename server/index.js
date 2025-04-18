@@ -100,7 +100,15 @@ app.put('/api/projects/:id', async (req, res) => {
 
 app.delete('/api/projects/:id', async (req, res) => {
   try{
-    await turso.execute("DELETE FROM projects WHERE id = ?", [req.params.id]);
+    const items = await turso.execute("SELECT id FROM items WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM item_attributes WHERE item_id IN (" + items.rows.map((item) => item.id).join(",") + ")")
+    await turso.execute("DELETE FROM items WHERE project_id = ?", [req.params.id])
+    const attrs = await turso.execute("SELECT id FROM attributes WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM role_attributes WHERE attribute_id IN (" + attrs.rows.map((attr) => attr.id).join(", ") + ")")
+    await turso.execute("DELETE FROM attributes WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM participations WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM roles WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM projects WHERE id = ?", [req.params.id])
   }catch (e) {
     console.log(e);
     res.status(500);
