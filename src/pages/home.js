@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProjectHeader from "../components/mainHeader";
 import {IconButton} from "../components/buttons";
 import { Dialog } from '@base-ui-components/react/dialog';
@@ -7,6 +7,7 @@ import { ReactGrid } from "@silevis/reactgrid";
 import "@silevis/reactgrid/styles.css";
 import "../styles/home.css";
 import { Redirect } from "wouter";
+import axios from "axios";
 
 
 const UploadDialog = ({grid, setGrid}) => {
@@ -54,7 +55,7 @@ const UploadDialog = ({grid, setGrid}) => {
 }*/
 
 function hasPermission(subject) {
-    return false
+    return true
 }
 
 const CommentDialog = ({selectedCell, visible, setVisible}) => {
@@ -86,30 +87,64 @@ const Tabs = ({values, names, selected, setSelected}) => {
     );
   };
 
-const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
+const Spreadsheet = ({columns, setColumns, rows, setRows, pId}) => {
 
-    const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column, width: 150, resizable: true }})
+    const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column.id, width: 150, resizable: true }})
 
-    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: hasPermission("admin")? "text": "header", text: column }})}}
+    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: hasPermission("admin")? "text": "header", text: column.name }})}}
     
     const [commentVisible, setCommentVisible] = useState(false);
     const [selectedCell, setSelectedCell] = useState(null);
 
-    const applyChangesToRows = (
-        changes,
-        prevRows
-      ) => {
-        changes.forEach((change) => {
-          const idx = change.rowId;
-          const fieldName = change.columnId;
-          prevRows[idx][fieldName] = change.newCell.text;
+    const applyChangesToRows = (changes) => {
+        const newRows = [...rows]
+        changes.forEach(async (change) => {
+            const idx = change.rowId
+            const fieldName = change.columnId
+            if (idx == 'newRow'){
+                const newRow = {}
+                newRow[fieldName] = change.newCell.text
+                const res = await axios.post('http://localhost:8080/api/projects/'+pId+'/items', {attributes: newRow}, {headers: {'user-id': sessionStorage.getItem('userId')}})
+                newRow['id'] = res.data.id
+                newRows.push(newRow)
+            }else {
+                axios.put('http://localhost:8080/api/projects/'+pId+'/items/'+idx, {attributes: {[fieldName]: change.newCell.text}}, {headers: {'user-id': sessionStorage.getItem('userId')}})
+                newRows.map((item)=>{if (item.id === idx) item[fieldName] = change.newCell.text; return item})
+            }
         });
-        return [...prevRows];
-      };
+        setRows(newRows)
+    };
+    
+    const applyChangesToColumns = (changes) => {
+        const newColumns = [...columns]
+        const promises = []
+        changes.forEach((change) => {
+            const fieldName = change.columnId;
+            if (fieldName == ''){ //New column
+                newColumns.push(change.newCell.text)
+                promises.push(axios.post('http://localhost:8080/api/projects/'+pId+'/attributes', {name: change.newCell.text}, {headers: {'user-id': sessionStorage.getItem('userId')}}))
+            }else if (change.newCell.text == '') //Cannot set an empty column name
+                return
+            else if (change.newCell.text in columns){ //Cannot set repeated names
+                return
+            } else {
+                const newColumns = [...columns]
+                newColumns[newColumns.indexOf(fieldName)] = change.newCell.text;
+                promises.push(axios.put('http://localhost:8080/api/projects/'+pId+'/attributes', {name: change.newCell.text}))
+            }
+        });
+        Promise.all(promises).then((results) => {
+            if (results.every((result) => result.status == 200)){
+                setColumns(newColumns)
+            }
+        })
+    }
 
-    const handleChanges = (changes) => { 
-        setRows((rows) => applyChangesToRows(changes, rows));
-        console.log(rows)
+    const handleChanges = (changes) => {
+        const columnChanges = changes.filter((change) => change.rowId == 'header')
+        applyChangesToColumns(columnChanges) //Change on column name
+        const rowChanges = changes.filter((change) => change.rowId != 'header')
+        applyChangesToRows(rowChanges)
     };
 
     const handleContextMenu = (
@@ -152,9 +187,9 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 
     const getRows = (items, columns) => [
         headerRow(columns),
-        ...items.map((item, idx) => ({
-          rowId: idx,
-          cells: columns.map((col)=> {return {type: "text", text: item[col]? String(item[col]): ""}} )
+        ...items.map((item) => ({
+          rowId: item.id,
+          cells: columns.map((col)=> {return {type: "text", text: item[col.id]? String(item[col.id]): ""}} )
           /*cells: [
             { type: "text", text: item.name },
             { type: "text", text: item.surname }
@@ -167,7 +202,7 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
     ];
 
     const columnNames = [...columns]
-    columnNames.push("") //Add empty column
+    columnNames.push({id: "", name: ""}) //Add empty column
 
     return  <div>
                 <ReactGrid rows={getRows(rows, columnNames)} columns={getColumns(columnNames)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
@@ -236,17 +271,26 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, params}) => {
 }
 
 const Home = ({params}) => {
-    const defaultWorkColumns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
-    const defaultWorks = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
-    const [workColumns, setWorkColumns] = useState(defaultWorkColumns)
-    const [works, setWorks] = useState(defaultWorks)
+    const [workColumns, setWorkColumns] = useState([])
+    const [works, setWorks] = useState([])
+
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/projects/'+params.id+'/attributes', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((response) => {
+            setWorkColumns(response.data.attributes)
+            const ids = response.data.attributes.map((attr) => attr.id)
+            axios.get('http://localhost:8080/api/projects/'+params.id+'/items', {headers: {'user-id': sessionStorage.getItem('userId'), 'attributes': ids.join(',')}})
+                .then((response) => {
+                    setWorks(response.data.items)
+                })
+        })
+    }, [])
 
     const defaultOthers = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
-    const [otherColumns, setOtherColumns] = useState(defaultWorkColumns)
+    const [otherColumns, setOtherColumns] = useState([])
     const [others, setOthers] = useState(defaultOthers)
 
-    const defaultBudget = [{Nombre: "Ilumniación", Coste: "200"}, {Nombre: "Transporte", Coste: "250"}]
     const defaultBudgetColumns = ["Nombre", "Coste"]
+    const defaultBudget = [{Nombre: "Ilumniación", Coste: "200"}, {Nombre: "Transporte", Coste: "250"}]
     const [budgetColumns, setBudgetColumns] = useState(defaultBudgetColumns)
     const [budget, setBudget] = useState(defaultBudget)
 
@@ -275,7 +319,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers}/>
+                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id}/>
             </main>
         </div>
     )

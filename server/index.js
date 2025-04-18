@@ -6,6 +6,12 @@ const createClient = require('@libsql/client').createClient
 
 require('dotenv').config()
 
+LEVEL_EDIT = 2
+LEVEL_VIEW = 1
+LEVEL_NONE = 0
+
+DEFAULT_ATTRIBUTES = ['Nombre', 'Artista', 'Altura', 'Peso']
+
 const turso = createClient({
   url: process.env.DB_URL,
   authToken: process.env.DB_TOKEN,
@@ -20,9 +26,27 @@ const corsOptions = {
 app.use(cors())
 app.use(express.json())
 app.use((req, res, next) => {
-  console.log(req.method, req.url);
-  next();
+  console.log(req.method, req.url)
+  next()
 });
+
+//region Permissions
+async function hasPermission(user, project, attr, level) {
+  const roles = await turso.execute("SELECT * FROM participations\
+    INNER JOIN roles ON roles.id = participations.role_id\
+    WHERE user_id = ? AND participations.project_id = ?", [user, project])
+  
+  const role = roles.rows[0]
+  if (role.name=='admin') return true
+
+  const permissions = await turso.execute("SELECT name, level FROM role_attributes\
+    INNER JOIN attributes ON attributes.id = role_attributes.attribute_id\
+    WHERE role_id = ?", [role.role_id])
+
+  const permission = permissions.rows.find((permission) => permission.name == attr)
+  if (!permission) return false
+  return permission.level >= level
+}
 
 //region Projects
 app.get('/api/projects', async (req, res) => {
@@ -35,11 +59,23 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
+app.get('/api/projects/:id', async (req, res) => {
+  try{
+    data = await turso.execute("SELECT * FROM projects INNER JOIN participations ON participations.project_id = projects.id WHERE user_id = ? AND project_id = ?", [req.headers["user-id"], req.params.id]);
+    res.json({ project: data.rows[0] });
+    return;
+  }catch (e) {
+    res.status(500);
+  }
+});
+
 app.post('/api/projects', async (req, res) => {
-  data = await turso.execute("INSERT INTO projects (name, archived, description) VALUES (?, ?, ?)", [req.body.name, req.body.archived, req.body.description]);
-  role = await turso.execute("INSERT INTO roles (name, project_id) VALUES ('admin', ?)", [data.lastInsertRowid]);
-  //TODO: Create default attributes
-  //TODO: Give edit access to every attribute
+  const data = await turso.execute("INSERT INTO projects (name, archived, description) VALUES (?, ?, ?)", [req.body.name, req.body.archived, req.body.description]);
+  const role = await turso.execute("INSERT INTO roles (name, project_id) VALUES ('admin', ?)", [data.lastInsertRowid]);
+  for (let i in DEFAULT_ATTRIBUTES){
+    let attr = await turso.execute("INSERT INTO attributes (name, project_id) VALUES (?, ?)", [DEFAULT_ATTRIBUTES[i], data.lastInsertRowid]);
+    await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, ?)", [role.lastInsertRowid, attr.lastInsertRowid, LEVEL_EDIT]);
+  }
   await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], data.lastInsertRowid, role.lastInsertRowid]);
   res.json({ project: data.rows[0] });
 });
@@ -102,6 +138,7 @@ app.get('/api/projects/:id/roles', async (req, res) => {
 })
 
 app.post('/api/projects/:id/roles', async (req, res) => {
+  //TODO: Check if name is already taken
   role = await turso.execute("INSERT INTO roles (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id]);
   attributes = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id]);
   for (let i = 0; i < attributes.rows.length; i++) {
@@ -189,6 +226,64 @@ app.put('/api/users/:id', async (req, res) => {
   res.status(200)
 })
 
+//region Spreadsheets
+app.get('/api/projects/:id/items', async (req, res) => {
+  if (!req.headers['attributes']){
+    res.status(400).json({ error: "Missing attributes" })
+    return;
+  }
+  const attributes = req.headers['attributes']
+  const data = await turso.execute("SELECT * FROM items\
+    INNER JOIN item_attributes ON item_attributes.item_id = items.id\
+    WHERE project_id = ?", [req.params.id])
+  let items = data.rows.reduce((items, item) => {if (!items[item.id]) items[item.id] = {}; items[item.id][item.attribute_id] = item.value; return items}, {})
+  items = Object.entries(items).map(([item, attrs]) => {
+    newAttrs = {...attrs}
+    newAttrs['id'] = item
+    return newAttrs
+  })
+  res.json({ items: items });
+})
+
+app.post('/api/projects/:id/items', async (req, res) => {
+  data = await turso.execute("INSERT INTO items (project_id) VALUES (?)", [req.params.id]);
+  attributes = req.body.attributes
+  console.log(attributes)
+  for (const [attr, value] of Object.entries(attributes)) {
+    turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [data.lastInsertRowid, attr, value]);
+  }
+  res.json({ item: data.rows[0] });
+})
+
+app.put('/api/projects/:pId/items/:iId', async (req, res) => {
+  attributes = req.body.attributes
+  for (const [attr, value] of Object.entries(attributes)) {
+    turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [req.params.iId, attr, value]);
+  }
+  res.json({ item: data.rows[0] });
+})
+
+app.get('/api/projects/:id/attributes', async (req, res) => {
+  data = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id]);
+  allowed_data = data.rows.filter((row) => hasPermission(req.headers["user-id"], req.params.id, row.name, LEVEL_VIEW));
+  res.json({ attributes: allowed_data });
+})
+
+app.post('/api/projects/:id/attributes', async (req, res) => {
+  if (hasPermission(req.headers["user-id"], req.params.id, "columns", LEVEL_EDIT)){
+    data = await turso.execute("INSERT INTO attributes (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id]);
+    res.json({ spreadsheet: data.rows[0] });
+  } else 
+    res.status(403).json({ error: "No permission" });
+})
+
+app.put('/api/projects/:pid/attributes/:aid', async (req, res) => {
+  if (hasPermission(req.headers["user-id"], req.params.pid, "columns", LEVEL_EDIT)){
+    data = await turso.execute("UPDATE attributes SET name = ? WHERE id = ?", [req.body.name, req.params.aid]);
+    res.json({ spreadsheet: data.rows[0] });
+  } else
+    res.status(403).json({ error: "No permission" });
+})
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "../styles/mainHeader.css";
 //import { Redirect } from "wouter";
 import { Sidebar } from 'primereact/sidebar';
 import { useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
+import axios from 'axios';
 
 
 function Chat({id}) {
@@ -147,11 +148,30 @@ function getUserId() {
   return userId;
 }
 
-const ProjectHeader = ({id, current, params}) => {
-  let [visibleChat, setVisibleChat] = useState(false);
-  let [visibleNotifications, setVisibleNotifications] = useState(false);
-  let userId = getUserId();
+async function getProjectName(id) {
+  if (id){
+    if (!sessionStorage.getItem('projectId') || sessionStorage.getItem('projectId')!= id){
+      sessionStorage.setItem('projectId', id);
+      await axios.get('http://localhost:8080/api/projects/'+id, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        sessionStorage.setItem('projectName', res.data.project.name);
+      });
+    }
+    return sessionStorage.getItem('projectName');
+  }
+}
 
+const ProjectHeader = ({id, current, params}) => {
+  const [visibleChat, setVisibleChat] = useState(false)
+  const [visibleNotifications, setVisibleNotifications] = useState(false)
+  const userId = getUserId()
+  
+  const [projectName, setProjectName] = useState(null)
+  useEffect(() => {
+    getProjectName(id).then((name) => {
+      setProjectName(name);
+    });
+  }, [])
+  
   if (!id) {
     return (
       <header className="header">
@@ -164,17 +184,18 @@ const ProjectHeader = ({id, current, params}) => {
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
-          <Notifications id={id}/>)}/>
+            <Notifications id={id}/>)}/>
       </header>
-    );
+    )
   }
+
   return (
     <header className="header">
       <div>
-        <a className="header-menu" href="/projects">
+        <a className="header-menu" href="/projects" onClick={()=>{sessionStorage.removeItem('projectId'); sessionStorage.removeItem('projectName')}}>
           <img src="/icons/menu.svg" alt="menu" />
         </a>
-        <h2 className="project-name">{id}</h2>
+        <h2 className="project-name">{projectName}</h2>
       </div>
       <div className="project-sections">
         <a className="header-home" href={"/project/"+id}>
@@ -201,7 +222,7 @@ const ProjectHeader = ({id, current, params}) => {
         content={()=>(
         <Notifications id={id}/>)}/>
     </header>
-  );
-};
+  )
+}
 
 export default ProjectHeader
