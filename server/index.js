@@ -240,10 +240,12 @@ app.get('/api/projects/:id/items', async (req, res) => {
     res.status(400).json({ error: "Missing attributes" })
     return;
   }
-  const attributes = req.headers['attributes']
+  let attributes = req.headers['attributes'].split(",")
+  attributes = attributes.filter((attr) => hasPermission(req.headers["user-id"], req.params.id, attr, LEVEL_VIEW))
+
   const data = await turso.execute("SELECT * FROM items\
     INNER JOIN item_attributes ON item_attributes.item_id = items.id\
-    WHERE project_id = ?", [req.params.id])
+    WHERE project_id = ? AND attribute_id IN (" + attributes.join(", ") + ")", [req.params.id])
   let items = data.rows.reduce((items, item) => {if (!items[item.id]) items[item.id] = {}; items[item.id][item.attribute_id] = item.value; return items}, {})
   items = Object.entries(items).map(([item, attrs]) => {
     newAttrs = {...attrs}
