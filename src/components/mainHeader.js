@@ -160,7 +160,7 @@ async function getProjectName(id) {
   }
 }
 
-const ProjectHeader = ({id, current, params}) => {
+const ProjectHeader = ({id, current, isAdmin=false, params}) => {
   const [visibleChat, setVisibleChat] = useState(false)
   const [visibleNotifications, setVisibleNotifications] = useState(false)
   const userId = getUserId()
@@ -204,9 +204,9 @@ const ProjectHeader = ({id, current, params}) => {
         <a className="header-calendar" href={current==="calendar" ? "javascript:void(0)" : "/project/"+id+"/calendar"}>
           <img src="/icons/calendar.svg" alt="calendar" />
         </a>
-        <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
+        {isAdmin? <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
-        </a>
+        </a> : null}
         <button className="header-btn header-chat">
           <img src="/icons/chat.svg" alt="chat" onClick={() => setVisibleChat(!visibleChat)} />
         </button>

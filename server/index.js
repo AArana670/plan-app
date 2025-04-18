@@ -181,6 +181,13 @@ app.get('/api/projects/:id/users/', async (req, res) => {
   res.json({ users: data.rows });
 })
 
+app.get('/api/users/:id/roles/', async (req, res) => {
+  data = await turso.execute("SELECT * FROM participations\
+    INNER JOIN roles ON roles.id = participations.role_id\
+    WHERE user_id = ?", [req.params.id]);
+  res.json({ roles: data.rows });
+})
+
 //region User Accounts
 app.post('/api/login', async (req, res) => {
   

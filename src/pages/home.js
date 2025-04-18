@@ -54,10 +54,6 @@ const UploadDialog = ({grid, setGrid}) => {
     )
 }*/
 
-function hasPermission(subject) {
-    return true
-}
-
 const CommentDialog = ({selectedCell, visible, setVisible}) => {
     return (
       <TriggerableDialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
@@ -87,11 +83,11 @@ const Tabs = ({values, names, selected, setSelected}) => {
     );
   };
 
-const Spreadsheet = ({columns, setColumns, rows, setRows, pId}) => {
+const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
 
     const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column.id, width: 150, resizable: true }})
 
-    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: hasPermission("admin")? "text": "header", text: column.name }})}}
+    const headerRow = (columnNames) => {return {rowId: "header", cells: columnNames.map((column) => {return { type: isAdmin? "text": "header", text: column.name }})}}
     
     const [commentVisible, setCommentVisible] = useState(false);
     const [selectedCell, setSelectedCell] = useState(null);
@@ -271,6 +267,14 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId}) => {
 }
 
 const Home = ({params}) => {
+    const [isAdmin, setAdmin] = useState(false)
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+            console.log(res.data)
+            setAdmin(res.data.roles.find((role) => role.project_id == params.id).name === 'admin')
+        })
+    }, [])
+
     const [workColumns, setWorkColumns] = useState([])
     const [works, setWorks] = useState([])
 
@@ -302,7 +306,7 @@ const Home = ({params}) => {
     if (!params.id) return <Redirect to="/projects" />;
     return (
         <div>
-            <ProjectHeader id={params.id} current="main"/>
+            <ProjectHeader id={params.id} current="main" isAdmin={isAdmin}/>
             <main className="home-main">
                 <Tabs values={tabValues} names={tabNames} selected={selectedTab} setSelected={setSelectedTab}/>
                 <header>
@@ -319,7 +323,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id}/>
+                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
             </main>
         </div>
     )
