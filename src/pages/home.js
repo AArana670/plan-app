@@ -54,17 +54,24 @@ const UploadDialog = ({grid, setGrid}) => {
     )
 }*/
 
-const CommentDialog = ({selectedCell, visible, setVisible}) => {
+const CommentDialog = ({selectedCell, visible, setVisible, columns, rows}) => {
+    const postComment = (e) => {
+        const text = e.target.form[0].value
+        axios.post('http://localhost:8080/api/projects/'+ sessionStorage.getItem('projectId') +'/messages', 
+        {text: text, comment: {column: selectedCell.column, row: selectedCell.row, value: selectedCell.value}},
+        {headers: {'user-id': sessionStorage.getItem('userId')}})
+    }
+
     return (
       <TriggerableDialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
         content={({ hide }) => (
           <div className="popup-main">
-              <h3>{"Comenta en " + selectedCell.column + " de " + selectedCell.row}</h3>
+              <h3>{"Comenta en " + columns.find((col)=>col.id === selectedCell.column).name + " de " + Object.values(rows.find((row)=>row.id === selectedCell.row))[0]}</h3>
               <form className="project-form" onSubmit={(e)=>e.preventDefault()}>
                 <textarea id="comment" />
                 <div className="dialog-buttons">
                   <button className="secondary-btn" onClick={hide}>Cancelar</button>
-                  <button className="main-btn" onClick={hide}>Enviar</button>
+                  <button className="main-btn" onClick={(e)=>{postComment(e); hide(e)}}>Enviar</button>
                 </div>
               </form>
           </div>
@@ -174,8 +181,8 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
             handler: () => {
                 const row = selectedRanges[0][0].rowId
                 const column = selectedRanges[0][0].columnId
-                const value = rows[row][column]
-                setSelectedCell({row: rows[row][columns[0]], column: column, value: value})
+                const value = rows.find((item)=>item.id===row)[column]
+                setSelectedCell({row: row, column: column, value: value})
                 setCommentVisible(true)
             }
           }];
@@ -202,7 +209,7 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
 
     return  <div>
                 <ReactGrid rows={getRows(rows, columnNames)} columns={getColumns(columnNames)} onCellsChanged={handleChanges} onContextMenu={handleContextMenu} />
-                <CommentDialog selectedCell={selectedCell} visible={commentVisible} setVisible={setCommentVisible}/>
+                <CommentDialog selectedCell={selectedCell} visible={commentVisible} setVisible={setCommentVisible} columns={columns} rows={rows}/>
             </div>
 
     /*function addColumn(event) {
@@ -270,7 +277,6 @@ const Home = ({params}) => {
     const [isAdmin, setAdmin] = useState(false)
     useEffect(() => {
         axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
-            console.log(res.data)
             setAdmin(res.data.roles.find((role) => role.project_id == params.id).name === 'admin')
         })
     }, [])

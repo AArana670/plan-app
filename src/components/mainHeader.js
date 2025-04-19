@@ -12,19 +12,21 @@ function Chat({id}) {
     e.preventDefault();
     const message = e.target[0].value;
     e.target[0].value = "";
-    setMessages([{type: "message", sender: "U1", message: message}, ...messages]);
+    axios.post('http://localhost:8080/api/projects/'+id+'/messages', {text: message}, {headers: {"user-id": sessionStorage.getItem('userId')}})
+      .then((res) => {
+        if (res.status != 200) return;
+        setMessages([{type: "message", sender: sessionStorage.getItem('username'), text: message}, ...messages]);
+      })
   }
-
-  const chatMessages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
-                    {type: "message", sender: "U2", message: "Ok, nos vemos luego."}, 
-                    {type: "message", sender: "U1", message: "Nada, solo quedarme en casa."}, 
-                    {type: "message", sender: "U2", message: "¿Qué planes tienes para hoy?"}, 
-                    {type: "message", sender: "U1", message: "Bien también."}, 
-                    {type: "message", sender: "U2", message: "Bien, y tú?"}, 
-                    {type: "message", sender: "U1", message: "Hola, ¿cómo estás?"}]
-
-  const [messages, setMessages] = useState(chatMessages)
-
+  
+  const [messages, setMessages] = useState([])
+  
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/projects/'+id+'/messages', {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
+      setMessages(res.data.messages);
+    })
+  }, [])
+  
   const chat = messages.map((message) => {
     if (message.type==="comment") {
       return (
@@ -33,9 +35,9 @@ function Chat({id}) {
           <div className="chat-comment">
             <div className="comment-header">
               <span className="comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
-              <span className="sidebar-message-value">{message.value}</span>
+              <span className="sidebar-message-value">{message.comment_value}</span>
             </div>
-            <div className="chat-text">{message.message}</div>
+            <div className="chat-text">{message.text}</div>
           </div>
         </div>
       )
@@ -43,7 +45,7 @@ function Chat({id}) {
       return (
         <div className="sidebar-message">
           <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
-          <div className="chat-text">{message.message}</div>
+          <div className="chat-text">{message.text}</div>
         </div>
       )
     }

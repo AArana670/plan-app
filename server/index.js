@@ -108,6 +108,7 @@ app.delete('/api/projects/:id', async (req, res) => {
     await turso.execute("DELETE FROM attributes WHERE project_id = ?", [req.params.id])
     await turso.execute("DELETE FROM participations WHERE project_id = ?", [req.params.id])
     await turso.execute("DELETE FROM roles WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM messages WHERE project_id = ?", [req.params.id])
     await turso.execute("DELETE FROM projects WHERE id = ?", [req.params.id])
   }catch (e) {
     console.log(e);
@@ -137,6 +138,36 @@ app.get('/api/projects/:id/events', async (req, res) => {
       INNER JOIN participations on role_tags.role_id = participations.role_id\
       WHERE project_id = ? and user_id = ?", [req.params.id, req.headers["user-id"]]);
   res.json({ events: data.rows });
+})
+
+//region Messages
+app.get('/api/projects/:id/messages', async (req, res) => {
+  if (!req.headers["user-id"]){
+    res.status(401).json({ error: "Missing userId" });
+    return;
+  }
+  data = await turso.execute("SELECT * FROM messages WHERE project_id = ?", [req.params.id]);
+  res.json({ messages: data.rows.reverse() });
+})
+
+app.post('/api/projects/:id/messages', async (req, res) => {
+  if (!req.headers["user-id"]){
+    res.status(401).json({ error: "Missing userId" });
+    return;
+  }
+  if (!req.body.text){
+    res.status(400).json({ error: "Missing text" });
+    return;
+  }
+
+  if (!req.body.comment){
+    data = await turso.execute("INSERT INTO messages (project_id, author_id, text) VALUES (?, ?, ?)", [req.params.id, req.headers["user-id"], req.body.text]);
+  }else{
+    let cellId = await turso.execute("SELECT id FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.body.comment.row, req.body.comment.column])
+    cellId = cellId.rows[0].id
+    data = await turso.execute("INSERT INTO messages (project_id, author_id, text, comment_cell, comment_value) VALUES (?, ?, ?, ?, ?)", [req.params.id, req.headers["user-id"], req.body.text, cellId, req.body.comment.value]);
+  }
+  res.json({ message: data.lastInsertRowid.toString() })
 })
 
 //region Roles
@@ -265,7 +296,6 @@ app.get('/api/projects/:id/items', async (req, res) => {
 app.post('/api/projects/:id/items', async (req, res) => {
   data = await turso.execute("INSERT INTO items (project_id) VALUES (?)", [req.params.id]);
   attributes = req.body.attributes
-  console.log(attributes)
   for (const [attr, value] of Object.entries(attributes)) {
     turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [data.lastInsertRowid, attr, value]);
   }
