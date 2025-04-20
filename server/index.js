@@ -120,11 +120,16 @@ app.delete('/api/projects/:id', async (req, res) => {
 
 //region Events
 app.get('/api/users/:id/events', async (req, res) => {
-  data = await turso.execute("SELECT * FROM events\
-      INNER JOIN event_tags on event_tags.event_id = events.id\
-      INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
-      INNER JOIN participations on participations.role_id = role_tags.role_id WHERE user_id = ?", [req.params.id]);
-  res.json({ events: data.rows });
+  let data = await turso.execute("SELECT * FROM events\
+      INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
+      INNER JOIN participations on participations.role_id = role_attributes.role_id WHERE user_id = ?", [req.params.id]);
+  data = data.rows.map((event) => {event.title = event.name; 
+    event.date = event.start_time.split(' ')[0]; 
+    event.end = event.end_time.split(' ')[0]; 
+    event.start_time = event.start_time.split(' ')[1]; 
+    event.end_time = event.end_time.split(' ')[1]; 
+    return event})
+  res.json({ events: data });
 })
 
 app.get('/api/projects/:id/events', async (req, res) => {
@@ -132,12 +137,26 @@ app.get('/api/projects/:id/events', async (req, res) => {
     res.status(401).json({ error: "Missing userId" });
     return;
   }
-  data = await turso.execute("SELECT * FROM events\
-      INNER JOIN event_tags on event_tags.event_id = events.id\
-      INNER JOIN role_tags on role_tags.tag_id = event_tags.tag_id\
-      INNER JOIN participations on role_tags.role_id = participations.role_id\
-      WHERE project_id = ? and user_id = ?", [req.params.id, req.headers["user-id"]]);
-  res.json({ events: data.rows });
+  let data = await turso.execute("SELECT * FROM events\
+      INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
+      INNER JOIN participations on role_attributes.role_id = participations.role_id\
+      WHERE participations.project_id = ? and user_id = ?", [req.params.id, req.headers["user-id"]]);
+  data = data.rows.map((event) => {event.title = event.name; 
+    event.start = event.start_time.split(' ')[0]; 
+    event.end = event.end_time.split(' ')[0]; 
+    event.start_time = event.start_time.split(' ')[1]; 
+    event.end_time = event.end_time.split(' ')[1]; 
+    return event})
+  res.json({ events: data });
+})
+
+app.post('/api/projects/:id/events', async (req, res) => {
+  const startTime = req.body.date+' '+req.body.start
+  const endTime = req.body.date+' '+req.body.end
+  data = await turso.execute('INSERT INTO events (name, start_time, end_time, tag_id, description) VALUES (?, ?, ?, ?, ?)', 
+    [req.body.name, startTime, endTime, req.body.tag, req.body.description]
+  )
+  res.json({ event: data.lastInsertRowid.toString() })
 })
 
 //region Messages
@@ -174,6 +193,7 @@ app.post('/api/projects/:id/messages', async (req, res) => {
     let cellId = await turso.execute("SELECT id FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.body.comment.row, req.body.comment.column])
     cellId = cellId.rows[0].id
     data = await turso.execute("INSERT INTO messages (project_id, author_id, text, comment_cell, comment_value) VALUES (?, ?, ?, ?, ?)", [req.params.id, req.headers["user-id"], req.body.text, cellId, req.body.comment.value]);
+    await turso.execute("INSERT INTO notifications (project_id, message_id) VALUES (?, ?)", [req.params.id, data.lastInsertRowid])
   }
   res.json({ message: data.lastInsertRowid.toString() })
 })

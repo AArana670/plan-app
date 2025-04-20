@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/calendar.css"
 import ProjectHeader from "../components/mainHeader";
 import FullCalendar from '@fullcalendar/react'
@@ -8,31 +8,45 @@ import listPlugin from '@fullcalendar/list';
 import { Dialog } from 'primereact/dialog';
 import esLocale from '@fullcalendar/core/locales/es';
 import axios from 'axios';
+import { useSearch } from "wouter";
 
 function addEvent(e, date) {
     e.preventDefault()
-    const form = e.target
+    const form = e.target.form
+    console.log(form)
     const title = form[0].value
     const tag = form[1].value
-    const start = form[2].value
-    const end = form[3].value
-    const description = form[4].value
-    const event = {title: title, date: date, tag: tag, start: start, end: end, description: description}
+    const start = form[2].value+':'+form[3].value
+    const end = form[4].value+':'+form[5].value
+    const description = form[6].value
+    axios.post('http://localhost:8080/api/projects/'+ sessionStorage.getItem('projectId') +'/events', 
+    {name: title, tag: tag, date: date, start: start, end: end, description: description},
+    {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        if (res.status == 200){
+            form.reset()
+            const event = {title: title, date: date, tag: tag, start: start, end: end, description: description}
+        }
+    })
 }
 
 const NewEventDialog = ({selectedDate, visible, setVisible}) => {
-    const columns = ["Nombre", "Artista", "Peso", "Luz", "Humedad", "Noenqué", "Noencuántos"]
+    const [tags, setTags] = useState([])
+    
+    useEffect(()=>{axios.get('http://localhost:8080/api/projects/'+sessionStorage.getItem('projectId')+'/attributes', 
+        {headers: {'user-id': sessionStorage.getItem('userId')}}).then((response) => {
+        setTags(response.data.attributes)
+    })}, [])
 
     return (
         <Dialog visible={visible} onHide={() => {if (!visible) return; setVisible(false); }}
         content={({ hide }) => (
             <div className="dialog-body">
                 <h3>{selectedDate}</h3>
-                <form className="new-event" onSubmit={(e) => {addEvent(e, selectedDate)}}>
+                <form className="new-event">
                     <div className="new-event-maindata">
                         <input placeholder="Título" />
                         <select id="tag">
-                            {[<option selected></option>, ...columns.map((tag) => <option>{tag}</option>)]}
+                            {[<option selected></option>, ...tags.map((tag) => <option value={tag.id}>{tag.name}</option>)]}
                         </select>
                         <input type="number" className="time-input" min={0} max={23} placeholder="00" />
                         <span>:</span>
@@ -43,7 +57,7 @@ const NewEventDialog = ({selectedDate, visible, setVisible}) => {
                         <input type="number" className="time-input" min={0} max={59} placeholder="00" />
                     </div>
                     <textarea placeholder="Descripción" />
-                    <button type="submit" className="main-btn" onClick={hide}>Crear</button>
+                    <button type="submit" className="main-btn" onClick={(e) => {addEvent(e, selectedDate); hide(e)}}>Crear</button>
                 </form>
             </div>
         )}>
@@ -62,12 +76,12 @@ const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents, newVis
                         <div className="event">
                             <div className="event-maindata">
                                 <h4 className="event-title">{event.title}</h4>
-                                <span className="event-time">{"09:00"}</span>
+                                <span className="event-time">{event.start}</span>
                                 <span> - </span>
-                                <span className="event-time">{"11:00"}</span>
+                                <span className="event-time">{event.end}</span>
                             </div>
                             <p className="event-description">
-                                {"awdosfksejwfoigj esjgvnsgndfogfj ewfpovjbgpfgeowfjv nfo ppovb vbn pofjkbgpfv  bnfefd bvfpokjb mnv pfjvn pobjvv bn ovpjdbn po dfn pojn pojn ponbpovjn pojnrgend fbkkfvo nbfdvpbo mnv òknfopb nm wefkjl mn eponwefpo mn v fn blpsfmnkdvl lpofmn"}
+                                {event.description}
                             </p>
                         </div>
                     )}
@@ -100,9 +114,9 @@ const Calendar = ({params}) => {
 
     const [events, setEvents] = React.useState([]);
     React.useEffect(() => {
-        axios.get('http://localhost:8080/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
-        console.log(data)
-        setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
+        axios.get('http://localhost:8080/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+        console.log(res)
+        setEvents(res.data.events);
         })
     }, []);
 
