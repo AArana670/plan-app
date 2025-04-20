@@ -101,7 +101,7 @@ const Calendar = ({params}) => {
     const [dateEvents, setDateEvents] = React.useState([]);
     
     function openDate (info, events, setSelectedDate){
-        const selectedEvents = events.filter((event) => event.date === info.dateStr);
+        const selectedEvents = events.filter((event) => event.start === info.dateStr);
         
         if (selectedEvents.length > 0){
             setDateEvents(selectedEvents);
