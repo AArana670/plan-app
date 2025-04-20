@@ -1,7 +1,8 @@
-import React from "react";
-import ProjectHeader from "../components/mainHeader";
+import React from "react"
+import ProjectHeader from "../components/mainHeader"
 import "../styles/profile.css"
-import axios from 'axios';
+import axios from 'axios'
+import Identicon from "identicon.js"
 
 
 const changeProfile = (e) => {
@@ -36,6 +37,7 @@ function getUserInfo() {
 const Profile = ({params}) => {
 
     const {username, image, email} = getUserInfo();
+    const imgHash = new Identicon(sessionStorage.getItem('userId').toString().padStart(15, '0')).toString();
 
     return (
         <div className="profile-main">
@@ -43,7 +45,7 @@ const Profile = ({params}) => {
             <main>
                 <form className="profile-form" autoComplete="off" onSubmit={changeProfile}>
                     <div id="form-head">
-                        <img className="profile-image" src="https://picsum.photos/200" alt="user" />
+                        <img className="profile-image" src={"data:image/png;base64," + imgHash} alt="user" />
                         <div id="username-field">
                             <label for="username">Nombre de usuario</label>
                             <input id="username" name="username" autoComplete="off" className="profile-input" type="text" placeholder="Nombre de usuario" />

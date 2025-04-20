@@ -5,6 +5,7 @@ import { Sidebar } from 'primereact/sidebar';
 import { useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import axios from 'axios';
+import Identicon from "identicon.js";
 
 
 function Chat({id}) {
@@ -68,10 +69,12 @@ const signOut= () => {
 }
 
 function Profile({userId}) {
+  const imgHash = new Identicon(userId.toString().padStart(15, '0')).toString();
+
   return (
     <Menu.Root>
       <Menu.Trigger className="header-btn">
-        <img src="/icons/user-circle.svg" alt="profile" />
+        <img src={"data:image/png;base64," + imgHash} alt="profile" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner className="dropdown-menu" sideOffset={8}>
@@ -86,9 +89,7 @@ function Profile({userId}) {
   );
 }
 
-function Notifications({id}) {
-  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
-                    {type: "change", sender: "U2", column: "Luz", row: "Estatua 2", oldValue: "290", newValue: "320"}]
+function Notifications({id, messages}) {
 
   const notifications = messages.map((message) => {
     if (message.type==="comment") {
@@ -173,6 +174,9 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
       setProjectName(name);
     });
   }, [])
+
+  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
+    {type: "change", sender: "U2", column: "Luz", row: "Estatua 2", oldValue: "290", newValue: "320"}]
   
   if (!id) {
     return (
@@ -186,7 +190,7 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
-            <Notifications id={id}/>)}/>
+            <Notifications id={id} messages={messages}/>)}/>
       </header>
     )
   }
@@ -222,7 +226,7 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
         <Chat id={id}/>)}/>
       <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
         content={()=>(
-        <Notifications id={id}/>)}/>
+        <Notifications id={id} messages={messages}/>)}/>
     </header>
   )
 }
