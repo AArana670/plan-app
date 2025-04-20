@@ -146,8 +146,16 @@ app.get('/api/projects/:id/messages', async (req, res) => {
     res.status(401).json({ error: "Missing userId" });
     return;
   }
-  data = await turso.execute("SELECT * FROM messages WHERE project_id = ?", [req.params.id]);
-  res.json({ messages: data.rows.reverse() });
+  let data = await turso.execute('SELECT messages.id, users.username, text, name.value, comment_value, attributes.name FROM messages\
+  LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
+  LEFT JOIN items ON items.id = cell.item_id\
+  LEFT JOIN attributes ON attributes.id = cell.attribute_id\
+  INNER JOIN users ON users.id = messages.author_id\
+  LEFT JOIN item_attributes name ON name.item_id = items.id\
+  WHERE messages.project_id = ?\
+  ORDER BY messages.id, name.id', [req.params.id]);
+  data = data.rows.reduce(([list, ids], message)=>{if (!(message.id in ids)){ids.push(message.id); list.push(message)} return [list, ids]}, [[],[]])[0]
+  res.json({ messages: data.reverse() });
 })
 
 app.post('/api/projects/:id/messages', async (req, res) => {

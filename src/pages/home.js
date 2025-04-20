@@ -157,7 +157,7 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
         menuOptions,
         selectedRanges
       ) => {
-        return [{
+        return [/*{
             id: "addRow",
             label: "Añadir fila debajo",
             handler: () => {
@@ -174,7 +174,7 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
                 newColumns.splice(columns.indexOf(selectedRanges[0][0].columnId)+1, 0, "")
                 setColumns(newColumns)
             }
-          },
+          },*/
           {
             id: "comment",
             label: "Comentar celda",

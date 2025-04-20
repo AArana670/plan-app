@@ -28,13 +28,13 @@ function Chat({id}) {
   }, [])
   
   const chat = messages.map((message) => {
-    if (message.type==="comment") {
+    if (message['comment_value']) {
       return (
         <div className="sidebar-message">
-          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
+          <div className="sidebar-message-sender" alt={message.username}>{message.username}</div>
           <div className="chat-comment">
             <div className="comment-header">
-              <span className="comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+              <span className="comment-key">Ha comentado en <b>{message.name}</b> de <b>{message.value}</b> </span>
               <span className="sidebar-message-value">{message.comment_value}</span>
             </div>
             <div className="chat-text">{message.text}</div>
@@ -44,7 +44,7 @@ function Chat({id}) {
     } else {
       return (
         <div className="sidebar-message">
-          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
+          <div className="sidebar-message-sender" alt={message.username}>{message.username}</div>
           <div className="chat-text">{message.text}</div>
         </div>
       )
