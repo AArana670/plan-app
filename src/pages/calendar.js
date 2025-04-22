@@ -95,28 +95,27 @@ const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents, newVis
 
 const Calendar = ({params}) => {
 
-    const [selectedDate, setSelectedDate] = React.useState(null);
-    const [newEventVisible, setNewEventVisible] = React.useState(false);
-    const [dateEventsVisible, setDateEventsVisible] = React.useState(false);
-    const [dateEvents, setDateEvents] = React.useState([]);
+    const [selectedDate, setSelectedDate] = React.useState(null)
+    const [newEventVisible, setNewEventVisible] = React.useState(false)
+    const [dateEventsVisible, setDateEventsVisible] = React.useState(false)
+    const [dateEvents, setDateEvents] = React.useState([])
     
     function openDate (info, events, setSelectedDate){
-        const selectedEvents = events.filter((event) => event.start === info.dateStr);
+        const selectedEvents = events.filter((event) => event.start === info.dateStr)
         
         if (selectedEvents.length > 0){
-            setDateEvents(selectedEvents);
-            setDateEventsVisible(!dateEventsVisible);
+            setDateEvents(selectedEvents)
+            setDateEventsVisible(!dateEventsVisible)
         } else
-            setNewEventVisible(!newEventVisible);
+            setNewEventVisible(!newEventVisible)
 
-        setSelectedDate(info.dateStr);
+        setSelectedDate(info.dateStr)
     }
 
-    const [events, setEvents] = React.useState([]);
+    const [events, setEvents] = React.useState([])
     React.useEffect(() => {
         axios.get('http://localhost:8080/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
-        console.log(res)
-        setEvents(res.data.events);
+        setEvents(res.data.events)
         })
     }, []);
 

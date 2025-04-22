@@ -16,7 +16,7 @@ function Chat({id}) {
     axios.post('http://localhost:8080/api/projects/'+id+'/messages', {text: message}, {headers: {"user-id": sessionStorage.getItem('userId')}})
       .then((res) => {
         if (res.status != 200) return;
-        setMessages([{type: "message", sender: sessionStorage.getItem('username'), text: message}, ...messages]);
+        setMessages([{type: "message", userId: sessionStorage.getItem('userId'), sender: sessionStorage.getItem('username'), text: message}, ...messages]);
       })
   }
   
@@ -29,10 +29,11 @@ function Chat({id}) {
   }, [])
   
   const chat = messages.map((message) => {
+    const imgHash = new Identicon(message.userId.toString().padStart(15, '0')).toString();
     if (message['comment_value']) {
       return (
         <div className="sidebar-message">
-          <div className="sidebar-message-sender" alt={message.username}>{message.username}</div>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
           <div className="chat-comment">
             <div className="comment-header">
               <span className="comment-key">Ha comentado en <b>{message.name}</b> de <b>{message.value}</b> </span>
@@ -45,7 +46,7 @@ function Chat({id}) {
     } else {
       return (
         <div className="sidebar-message">
-          <div className="sidebar-message-sender" alt={message.username}>{message.username}</div>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
           <div className="chat-text">{message.text}</div>
         </div>
       )
@@ -92,23 +93,25 @@ function Profile({userId}) {
 function Notifications({id, messages}) {
 
   const notifications = messages.map((message) => {
-    if (message.type==="comment") {
+    if (message.comment) {
+      const imgHash = new Identicon(message.comment.userId.toString().padStart(15, '0')).toString();
       return (
         <div className="sidebar-message">
-          <div className="sidebar-message-sender" alt={message.sender}>{message.sender}</div>
+          <img className="sidebar-message-sender" alt={message.comment.username} src={"data:image/png;base64," + imgHash}/>
           <div className="notifications-comment">
             <div className="comment-header">
-              <span className="comment-key">Ha comentado en <b>{message.column}</b> de <b>{message.row}</b> </span>
-              <span className="sidebar-message-value">{message.value}</span>
+              <span className="comment-key">Ha comentado en <b>{message.comment.name}</b> de <b>{message.comment.value}</b> </span>
+              <span className="sidebar-message-value">{message.comment.comment_value}</span>
             </div>
-            <div className="notifications-text">{message.message}</div>
+            <div className="notifications-text">{message.comment.text}</div>
           </div>
         </div>
       )
-    } else {
+    } else if (message.type==="change") {
+      const imgHash = new Identicon(message.comment.userId.toString().padStart(15, '0')).toString();
       return (
         <div className="sidebar-message">
-          <span className="sidebar-message-sender" alt={message.sender}>{message.sender}</span>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
           <div className="change-header">
             <span className="change-key">Ha modificado en <b>{message.column}</b> de <b>{message.row}</b> </span>
             <div className="change-body">
@@ -163,7 +166,7 @@ async function getProjectName(id) {
   }
 }
 
-const ProjectHeader = ({id, current, isAdmin=false, params}) => {
+const ProjectHeader = ({id, current, isAdmin, params}) => {
   const [visibleChat, setVisibleChat] = useState(false)
   const [visibleNotifications, setVisibleNotifications] = useState(false)
   const userId = getUserId()
@@ -175,6 +178,33 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
     });
   }, [])
 
+  const [admin, setAdmin] = useState(isAdmin)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('projectId')){
+      axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        setAdmin(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).name === 'admin')
+      })
+    } else {
+      setAdmin(false)
+    }
+  }, [])
+
+  const [notifications, setNotifications] = useState([])
+  const newNotifications = notifications.filter((notification) => notification.id > sessionStorage.getItem('lastNotification')).length
+
+  useEffect(() => {
+    if (id){
+      axios.get('http://localhost:8080/api/projects/'+id+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        setNotifications(res.data.notifications)
+      })
+    } else {
+      axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        setNotifications(res.data.notifications)
+      })
+    }
+}, [])
+
   const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
     {type: "change", sender: "U2", column: "Luz", row: "Estatua 2", oldValue: "290", newValue: "320"}]
   
@@ -185,12 +215,12 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
           <img src="/icons/menu.svg" alt="Menu" />
         </a>
         <div>
-          <NotificationsBtn alert={1} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
+          <NotificationsBtn alert={newNotifications} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
           <Profile userId={userId} current={current}/>
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
-            <Notifications id={id} messages={messages}/>)}/>
+            <Notifications id={id} messages={notifications}/>)}/>
       </header>
     )
   }
@@ -210,7 +240,7 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
         <a className="header-calendar" href={current==="calendar" ? "javascript:void(0)" : "/project/"+id+"/calendar"}>
           <img src="/icons/calendar.svg" alt="calendar" />
         </a>
-        {isAdmin? <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
+        {admin? <a className="header-users" href={current==="users" ? "javascript:void(0)" : "/project/"+id+"/users"}>
           <img src="/icons/users.svg" alt="users" />
         </a> : null}
         <button className="header-btn header-chat">
@@ -218,7 +248,7 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
         </button>
       </div>
       <div>
-        <NotificationsBtn alert={5} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
+        <NotificationsBtn alert={newNotifications} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
         <Profile userId={userId} current={current}/>
       </div>
       <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
@@ -226,7 +256,7 @@ const ProjectHeader = ({id, current, isAdmin=false, params}) => {
         <Chat id={id}/>)}/>
       <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
         content={()=>(
-        <Notifications id={id} messages={messages}/>)}/>
+        <Notifications id={id} messages={notifications}/>)}/>
     </header>
   )
 }

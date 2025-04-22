@@ -159,22 +159,27 @@ app.post('/api/projects/:id/events', async (req, res) => {
   res.json({ event: data.lastInsertRowid.toString() })
 })
 
-//region Messages
+//region Messages & Notifications
+async function getMessages(projectId) {
+  let data = await turso.execute('SELECT messages.id, users.id as userId, users.username, text, name.value, comment_value, attributes.name FROM messages\
+    LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
+    LEFT JOIN items ON items.id = cell.item_id\
+    LEFT JOIN attributes ON attributes.id = cell.attribute_id\
+    INNER JOIN users ON users.id = messages.author_id\
+    LEFT JOIN item_attributes name ON name.item_id = items.id\
+    WHERE messages.project_id = ?\
+    ORDER BY messages.id, name.id', [projectId]);
+  data = data.rows.reduce(([list, ids], message)=>{if (!(message.id in ids)){ids.push(message.id); list.push(message);} return [list, ids]}, [[],[]])[0]
+  return data
+}
+
 app.get('/api/projects/:id/messages', async (req, res) => {
   if (!req.headers["user-id"]){
     res.status(401).json({ error: "Missing userId" });
     return;
   }
-  let data = await turso.execute('SELECT messages.id, users.username, text, name.value, comment_value, attributes.name FROM messages\
-  LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
-  LEFT JOIN items ON items.id = cell.item_id\
-  LEFT JOIN attributes ON attributes.id = cell.attribute_id\
-  INNER JOIN users ON users.id = messages.author_id\
-  LEFT JOIN item_attributes name ON name.item_id = items.id\
-  WHERE messages.project_id = ?\
-  ORDER BY messages.id, name.id', [req.params.id]);
-  data = data.rows.reduce(([list, ids], message)=>{if (!(message.id in ids)){ids.push(message.id); list.push(message)} return [list, ids]}, [[],[]])[0]
-  res.json({ messages: data.reverse() });
+  let data = await getMessages(req.params.id)
+  res.json({ messages: data.reverse() })
 })
 
 app.post('/api/projects/:id/messages', async (req, res) => {
@@ -194,8 +199,57 @@ app.post('/api/projects/:id/messages', async (req, res) => {
     cellId = cellId.rows[0].id
     data = await turso.execute("INSERT INTO messages (project_id, author_id, text, comment_cell, comment_value) VALUES (?, ?, ?, ?, ?)", [req.params.id, req.headers["user-id"], req.body.text, cellId, req.body.comment.value]);
     await turso.execute("INSERT INTO notifications (project_id, message_id) VALUES (?, ?)", [req.params.id, data.lastInsertRowid])
+    notify('comment', {projectId: req.params.id, messageId: data.lastInsertRowid})
   }
   res.json({ message: data.lastInsertRowid.toString() })
+})
+
+async function notify(type, params) {
+  try{
+    if(!params.projectId)
+      return null
+    if (type == 'comment' && params.messageId){
+      data = await turso.execute("INSERT INTO notifications (project_id, message_id) VALUES (?, ?)", [params.projectId, params.messageId])
+    } else if (type == 'change' && params.cellId && params.oldValue && params.newValue){
+      data = await turso.execute("INSERT INTO notifications (project_id, cell_id, new_value, old_value) VALUES (?, ?, ?, ?)", [params.projectId, params.cellId, params.newValue, params.oldValue])
+    }
+    return data.lastInsertRowid.toString()
+  } catch (e) {
+    console.log(e)
+    return null
+  }
+}
+
+app.get('/api/projects/:id/notifications', async (req, res) => {
+  if (!req.headers["user-id"]){
+    res.status(401).json({ error: "Missing userId" });
+    return;
+  }
+
+  let data = await turso.execute("SELECT * FROM notifications\
+    LEFT JOIN messages ON messages.id = notifications.message_id\
+    LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
+    WHERE notifications.project_id = ?", [req.params.id]);
+  const messages = await getMessages(req.params.id)
+  data.rows.forEach((notification) => {
+    if (notification.message_id){
+      notification.comment = messages.find((message) => message.id == notification.message_id)
+    }
+  })
+  res.json({ notifications: data.rows.reverse() });
+})
+
+app.get('/api/users/:id/notifications', async (req, res) => {
+  if (req.headers["user-id"] != req.params.id){
+    res.status(409).json({ error: "User id does not match" });
+  }
+
+  let data = await turso.execute("SELECT * FROM notifications\
+    LEFT JOIN messages ON messages.id = notifications.message_id\
+    LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
+    INNER JOIN participations ON participations.project_id = notifications.project_id\
+    WHERE participations.user_id = ?", [req.params.id]);
+  res.json({ notifications: data.rows });
 })
 
 //region Roles
@@ -332,10 +386,23 @@ app.post('/api/projects/:id/items', async (req, res) => {
 
 app.put('/api/projects/:pId/items/:iId', async (req, res) => {
   attributes = req.body.attributes
-  for (const [attr, value] of Object.entries(attributes)) {
-    turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [req.params.iId, attr, value]);
+  for (let [attr, value] of Object.entries(attributes)) {
+    const oldData = await turso.execute("SELECT * FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.params.iId, attr]);
+    if (oldData.rows[0] == null){
+      data = await turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value, last_editor) VALUES (?, ?, ?, ?)", [req.params.iId, attr, value, req.headers['user-id']]);
+      notify('change', {projectId: req.params.pId, cellId: data.lastInsertRowid, newValue: value, oldValue: null})
+      res.json({ item: data.lastInsertRowid.toString() });
+    } else {
+      const oldValue = oldData.rows[0].value
+      if (oldValue != value){
+        data = await turso.execute("UPDATE item_attributes SET value = ?, last_editor = ? WHERE item_id = ? AND attribute_id = ?", [value, req.headers['user-id'], req.params.iId, attr]);
+        notify('change', {projectId: req.params.pId, cellId: oldData.rows[0].id, newValue: value, oldValue: oldValue})
+        res.json({ item: data.rows[0] });
+      } else {
+        res.json({ item: oldData.rows[0] });
+      }
+    }
   }
-  res.json({ item: data.rows[0] });
 })
 
 app.get('/api/projects/:id/attributes', async (req, res) => {
