@@ -107,17 +107,17 @@ function Notifications({id, messages}) {
           </div>
         </div>
       )
-    } else if (message.type==="change") {
-      const imgHash = new Identicon(message.comment.userId.toString().padStart(15, '0')).toString();
+    } else if (message.new_value) {
+      const imgHash = new Identicon(message.change_author.toString().padStart(15, '0')).toString();
       return (
         <div className="sidebar-message">
-          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
+          <img className="sidebar-message-sender" alt={message.change_author} src={"data:image/png;base64," + imgHash}/>
           <div className="change-header">
-            <span className="change-key">Ha modificado en <b>{message.column}</b> de <b>{message.row}</b> </span>
+            <span className="change-key">Ha modificado en <b>{message.name}</b> de <b>{message.value}</b> </span>
             <div className="change-body">
-              <span className="sidebar-message-value">{message.oldValue}</span>
+              <span className="sidebar-message-value">{message.old_value}</span>
               <span className="change-key"> a </span>
-              <span className="sidebar-message-value">{message.newValue}</span>
+              <span className="sidebar-message-value">{message.new_value}</span>
             </div>
           </div>
         </div>

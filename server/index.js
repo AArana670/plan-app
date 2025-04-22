@@ -222,21 +222,27 @@ async function notify(type, params) {
 
 app.get('/api/projects/:id/notifications', async (req, res) => {
   if (!req.headers["user-id"]){
-    res.status(401).json({ error: "Missing userId" });
+    res.status(401).json({ error: "Missing userId" })
     return;
   }
 
-  let data = await turso.execute("SELECT * FROM notifications\
+  let data = await turso.execute("SELECT notifications.*, messages.*, name.value, attributes.name FROM notifications\
     LEFT JOIN messages ON messages.id = notifications.message_id\
     LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
-    WHERE notifications.project_id = ?", [req.params.id]);
+    LEFT JOIN attributes ON attributes.id = item_attributes.attribute_id\
+    LEFT JOIN item_attributes name ON name.item_id = item_attributes.item_id\
+    WHERE notifications.project_id = ?\
+    ORDER BY notifications.id, name.id", [req.params.id])
   const messages = await getMessages(req.params.id)
   data.rows.forEach((notification) => {
     if (notification.message_id){
       notification.comment = messages.find((message) => message.id == notification.message_id)
     }
   })
-  res.json({ notifications: data.rows.reverse() });
+  
+  data = data.rows.reduce(([list, ids], notification)=>{if (!notification.cell_id){ list.push(notification) } else { if (!(ids.includes(notification.id))){ids.push(notification.id); list.push(notification);}} return [list, ids]}, [[],[]])[0]
+
+  res.json({ notifications: data.reverse() });
 })
 
 app.get('/api/users/:id/notifications', async (req, res) => {
