@@ -157,8 +157,8 @@ const Projects = () => {
 
   const [events, setEvents] = React.useState([]);
   React.useEffect(() => {
-    axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
-      setEvents(data.data.events.map(e=>{return {title:e.name, date:e.start_time}}));
+    axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+      setEvents(res.data.events);
     })
   }, []);
 
