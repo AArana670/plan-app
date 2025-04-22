@@ -90,7 +90,17 @@ function Profile({userId}) {
   );
 }
 
-function Notifications({id, messages}) {
+function Notifications({id, messages, setLastNotification}) {
+
+  if (id && sessionStorage.getItem('lastNotification') < messages[0].id){
+    axios.put('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', 
+    {[id]: messages[0].id}, {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
+      if (res.status == 200) {
+        setLastNotification(messages[0].id);
+        sessionStorage.setItem('lastNotification', messages[0].id);
+      }
+    })
+  }
 
   const notifications = messages.map((message) => {
     if (message.comment) {
@@ -191,7 +201,9 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   }, [])
 
   const [notifications, setNotifications] = useState([])
-  const newNotifications = notifications.filter((notification) => notification.id > sessionStorage.getItem('lastNotification')).length
+
+  const [lastNotification, setLastNotification] = useState(sessionStorage.getItem('lastNotification'))
+  const newNotifications = notifications.filter((notification) => notification.id > lastNotification).length
 
   useEffect(() => {
     if (id){
@@ -215,12 +227,12 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
           <img src="/icons/menu.svg" alt="Menu" />
         </a>
         <div>
-          <NotificationsBtn alert={newNotifications} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
+          <NotificationsBtn alert={0} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
           <Profile userId={userId} current={current}/>
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
-            <Notifications id={id} messages={notifications}/>)}/>
+            <Notifications id={id} messages={notifications} setLastNotification={setLastNotification}/>)}/>
       </header>
     )
   }
@@ -256,7 +268,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
         <Chat id={id}/>)}/>
       <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
         content={()=>(
-        <Notifications id={id} messages={notifications}/>)}/>
+        <Notifications id={id} messages={notifications} setLastNotification={setLastNotification}/>)}/>
     </header>
   )
 }

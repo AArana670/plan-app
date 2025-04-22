@@ -17,12 +17,6 @@ const turso = createClient({
   authToken: process.env.DB_TOKEN,
 });
 
-const corsOptions = {
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT'],
-  allowedHeaders: ['Content-Type']
-};
-
 app.use(cors())
 app.use(express.json())
 app.use((req, res, next) => {
@@ -51,13 +45,16 @@ async function hasPermission(user, project, attr, level) {
 //region Projects
 app.get('/api/projects', async (req, res) => {
   try{
-    data = await turso.execute("SELECT * FROM projects INNER JOIN participations ON participations.project_id = projects.id WHERE user_id = ?", [req.headers["user-id"]]);
-    res.json({ projects: data.rows });
-    return;
+    data = await turso.execute("SELECT projects.*, roles.name AS role FROM projects\
+      INNER JOIN participations ON participations.project_id = projects.id\
+      INNER JOIN roles ON roles.id = participations.role_id\
+      WHERE user_id = ?", [req.headers["user-id"]])
+    res.json({ projects: data.rows })
+    return
   }catch (e) {
-    res.status(500);
+    res.status(500)
   }
-});
+})
 
 app.get('/api/projects/:id', async (req, res) => {
   try{
@@ -255,6 +252,17 @@ app.get('/api/users/:id/notifications', async (req, res) => {
     LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
     INNER JOIN participations ON participations.project_id = notifications.project_id\
     WHERE participations.user_id = ?", [req.params.id]);
+  res.json({ notifications: data.rows });
+})
+
+app.put('/api/users/:id/notifications', async (req, res) => {
+  if (req.headers["user-id"] != req.params.id){
+    res.status(409).json({ error: "User id does not match" });
+  }
+
+  [project, value] = Object.entries(req.body)[0]
+
+  const data = await turso.execute("UPDATE participations SET last_notification = ? WHERE project_id = ? AND user_id = ?", [project, value, req.params.id])
   res.json({ notifications: data.rows });
 })
 

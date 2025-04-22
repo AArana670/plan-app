@@ -107,7 +107,7 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
         <img src="https://picsum.photos/200" alt={cards[i].name}/>
         <div className="card-overlay">
           <h2>{cards[i].name}</h2>
-          <Menu.Root>
+          {cards[i].role=='admin'? <Menu.Root>
             <Menu.Trigger className="project-menu-btn">
               <img src="/icons/more.svg" alt="profile" />
             </Menu.Trigger>
@@ -120,10 +120,10 @@ const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible
                 </Menu.Popup>
               </Menu.Positioner>
             </Menu.Portal>
-          </Menu.Root>
+          </Menu.Root>: ''}
         </div>
       </a>
-    );
+    )
   }
 
   return (
