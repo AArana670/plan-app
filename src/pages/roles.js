@@ -19,7 +19,7 @@ const RoleDialog = ({roles, setRoles, id}) => {
             const newRoles = {...roles}
             newRoles[newRole] = {id: roleId, accesses: {}}
             for (let i in newRoles['admin'].accesses){
-                newRoles[newRole].accesses[i] = 0
+                newRoles[newRole].accesses[i]= {level: 0}
             }
             setRoles(newRoles)
         })

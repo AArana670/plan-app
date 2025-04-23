@@ -90,7 +90,7 @@ const Tabs = ({values, names, selected, setSelected}) => {
     );
   };
 
-const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
+const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) => {
 
     const getColumns = (columnNames) => columnNames.map((column) => {return { columnId: column.id, width: 150, resizable: true }})
 
@@ -107,7 +107,8 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
             if (idx == 'newRow'){
                 const newRow = {}
                 newRow[fieldName] = change.newCell.text
-                const res = await axios.post('http://localhost:8080/api/projects/'+pId+'/items', {attributes: newRow}, {headers: {'user-id': sessionStorage.getItem('userId')}})
+                const res = await axios.post('http://localhost:8080/api/projects/'+pId+'/items', 
+                    {attributes: newRow, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}})
                 newRow['id'] = res.data.id
                 newRows.push(newRow)
             }else {
@@ -117,6 +118,8 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
         });
         setRows(newRows)
     };
+
+    console.log(columns)
     
     const applyChangesToColumns = (changes) => {
         const newColumns = [...columns]
@@ -124,22 +127,27 @@ const Spreadsheet = ({columns, setColumns, rows, setRows, pId, isAdmin}) => {
         changes.forEach((change) => {
             const fieldName = change.columnId;
             if (fieldName == ''){ //New column
-                newColumns.push(change.newCell.text)
-                promises.push(axios.post('http://localhost:8080/api/projects/'+pId+'/attributes', {name: change.newCell.text}, {headers: {'user-id': sessionStorage.getItem('userId')}}))
+                promises.push(axios.post('http://localhost:8080/api/projects/'+pId+'/attributes', 
+                    {name: change.newCell.text, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
+                        if (res.status == 200){
+                            newColumns.push({id: res.data.attributeId, name: change.newCell.text, project_id: pId, spreadsheet: group+''})
+                        }
+                    }))
             }else if (change.newCell.text == '') //Cannot set an empty column name
                 return
             else if (change.newCell.text in columns){ //Cannot set repeated names
                 return
             } else {
-                const newColumns = [...columns]
-                newColumns[newColumns.indexOf(fieldName)] = change.newCell.text;
-                promises.push(axios.put('http://localhost:8080/api/projects/'+pId+'/attributes', {name: change.newCell.text}))
+                promises.push(axios.put('http://localhost:8080/api/projects/'+pId+'/attributes', 
+                    {name: change.newCell.text}).then(((res)=>{
+                        if (res.status == 200){
+                            newColumns[newColumns.find((col)=>col.text==fieldName)].name=change.newCell.text
+                        }
+                    })))
             }
         });
         Promise.all(promises).then((results) => {
-            if (results.every((result) => result.status == 200)){
-                setColumns(newColumns)
-            }
+            setColumns(newColumns)
         })
     }
 
@@ -284,25 +292,28 @@ const Home = ({params}) => {
     const [workColumns, setWorkColumns] = useState([])
     const [works, setWorks] = useState([])
 
+    const [otherColumns, setOtherColumns] = useState([])
+    const [others, setOthers] = useState([])
+
+    const [budgetColumns, setBudgetColumns] = useState([])
+    const [budget, setBudget] = useState([])
+
     useEffect(() => {
-        axios.get('http://localhost:8080/api/projects/'+params.id+'/attributes', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((response) => {
-            setWorkColumns(response.data.attributes)
-            const ids = response.data.attributes.map((attr) => attr.id)
-            axios.get('http://localhost:8080/api/projects/'+params.id+'/items', {headers: {'user-id': sessionStorage.getItem('userId'), 'attributes': ids.join(',')}})
-                .then((response) => {
-                    setWorks(response.data.items)
-                })
+        axios.get('http://localhost:8080/api/projects/'+params.id+'/attributes', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+            if (res.data.attributes.length > 0){
+                setWorkColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='1'))
+                setBudgetColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='2'))
+                setOtherColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='3'))
+                const ids = res.data.attributes.map((attr) => attr.id)
+                axios.get('http://localhost:8080/api/projects/'+params.id+'/items', {headers: {'user-id': sessionStorage.getItem('userId'), 'attributes': ids.join(',')}})
+                    .then((resItems) => {
+                        setWorks(resItems.data.items.filter((item)=>item.spreadsheet==='1'))
+                        setBudget(resItems.data.items.filter((item)=>item.spreadsheet==='2'))
+                        setOthers(resItems.data.items.filter((item)=>item.spreadsheet==='3'))
+                    })
+            }
         })
     }, [])
-
-    const defaultOthers = [{Nombre: "Estatua 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "210"}, {Nombre: "Estatua 2", Artista: "Halfonso", Peso: "20", Luz: "320", Humedad: "5", Noenqué: "195"}, {Nombre: "Cuadro 1", Artista: "Halfonso", Peso: "20", Luz: "250", Humedad: "5", Noenqué: "203", Noencuántos: "52"}]
-    const [otherColumns, setOtherColumns] = useState([])
-    const [others, setOthers] = useState(defaultOthers)
-
-    const defaultBudgetColumns = ["Nombre", "Coste"]
-    const defaultBudget = [{Nombre: "Ilumniación", Coste: "200"}, {Nombre: "Transporte", Coste: "250"}]
-    const [budgetColumns, setBudgetColumns] = useState(defaultBudgetColumns)
-    const [budget, setBudget] = useState(defaultBudget)
 
     const [selectedTab, setSelectedTab] = useState("works")
     const tabValues = ["works", "budget", "others"]
@@ -329,7 +340,7 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Spreadsheet columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
+                <Spreadsheet group={tabValues.indexOf(selectedTab)+1} columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
             </main>
         </div>
     )

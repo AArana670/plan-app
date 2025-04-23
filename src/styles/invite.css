@@ -1,0 +1,16 @@
+.invite-main{
+    margin: auto;
+    width: fit-content;
+    text-align: center;
+    margin-block: 30vh;
+}
+
+.invite-main div {
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    border: 1px solid #5a28ff;
+    background-color: #eaddff;
+    padding: 20px;
+    border-radius: 20px;
+}

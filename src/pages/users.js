@@ -13,7 +13,7 @@ const InviteDialog = ({id, roles}) => {
         setSelectedRole(roles[0].id)
 
     function copy(e){
-        navigator.clipboard.writeText("plan.app/invite/"+id+"/"+selectedRole)
+        navigator.clipboard.writeText("localhost:3000/invite/"+id+"/"+selectedRole)
     }
 
     return (

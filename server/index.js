@@ -10,7 +10,9 @@ LEVEL_EDIT = 2
 LEVEL_VIEW = 1
 LEVEL_NONE = 0
 
-DEFAULT_ATTRIBUTES = ['Nombre', 'Artista', 'Altura', 'Peso']
+DEFAULT_WORK_ATTRIBUTES = ['Nombre', 'Artista', 'Altura', 'Peso']
+DEFAULT_BUDGET_ATTRIBUTES = ['Nombre', 'Precio', 'Cantidad', 'Total']
+DEFAULT_OTHER_ATTRIBUTES = ['Nombre']
 
 const turso = createClient({
   url: process.env.DB_URL,
@@ -69,12 +71,20 @@ app.get('/api/projects/:id', async (req, res) => {
 app.post('/api/projects', async (req, res) => {
   const data = await turso.execute("INSERT INTO projects (name, archived, description) VALUES (?, ?, ?)", [req.body.name, req.body.archived, req.body.description]);
   const role = await turso.execute("INSERT INTO roles (name, project_id) VALUES ('admin', ?)", [data.lastInsertRowid]);
-  for (let i in DEFAULT_ATTRIBUTES){
-    let attr = await turso.execute("INSERT INTO attributes (name, project_id) VALUES (?, ?)", [DEFAULT_ATTRIBUTES[i], data.lastInsertRowid]);
+  for (let i in DEFAULT_WORK_ATTRIBUTES){
+    let attr = await turso.execute("INSERT INTO attributes (name, project_id, spreadsheet) VALUES (?, ?, 1)", [DEFAULT_WORK_ATTRIBUTES[i], data.lastInsertRowid]);
+    await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, ?)", [role.lastInsertRowid, attr.lastInsertRowid, LEVEL_EDIT]);
+  }
+  for (let i in DEFAULT_BUDGET_ATTRIBUTES){
+    let attr = await turso.execute("INSERT INTO attributes (name, project_id, spreadsheet) VALUES (?, ?, 2)", [DEFAULT_BUDGET_ATTRIBUTES[i], data.lastInsertRowid]);
+    await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, ?)", [role.lastInsertRowid, attr.lastInsertRowid, LEVEL_EDIT]);
+  }
+  for (let i in DEFAULT_OTHER_ATTRIBUTES){
+    let attr = await turso.execute("INSERT INTO attributes (name, project_id, spreadsheet) VALUES (?, ?, 3)", [DEFAULT_OTHER_ATTRIBUTES[i], data.lastInsertRowid]);
     await turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, ?)", [role.lastInsertRowid, attr.lastInsertRowid, LEVEL_EDIT]);
   }
   await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], data.lastInsertRowid, role.lastInsertRowid]);
-  res.json({ project: data.rows[0] });
+  res.json({ project: data.lastInsertRowid.toString() });
 });
 
 app.put('/api/projects', async (req, res) => {
@@ -300,7 +310,7 @@ app.post('/api/projects/:id/roles', async (req, res) => {
 app.get('/api/projects/:pid/roles/:rid', async (req, res) => {
   data = await turso.execute("SELECT * FROM role_attributes \
     INNER JOIN attributes ON attributes.id = role_attributes.attribute_id \
-    WHERE project_id = ? AND role_id = ?", [req.params.pid, req.params.rid]);
+    WHERE project_id = ? AND role_id = ? ORDER BY role_attributes.attribute_id", [req.params.pid, req.params.rid]);
   res.json({ permissions: data.rows });
 })
 
@@ -402,8 +412,8 @@ app.get('/api/projects/:id/items', async (req, res) => {
 
   const data = await turso.execute("SELECT * FROM items\
     INNER JOIN item_attributes ON item_attributes.item_id = items.id\
-    WHERE project_id = ? AND attribute_id IN (" + attributes.join(", ") + ")", [req.params.id])
-  let items = data.rows.reduce((items, item) => {if (!items[item.id]) items[item.id] = {}; items[item.id][item.attribute_id] = item.value; return items}, {})
+    WHERE items.project_id = ? AND attribute_id IN (" + attributes.join(", ") + ")", [req.params.id])
+  let items = data.rows.reduce((items, item) => {if (!items[item.id]) items[item.id] = {}; if (!items[item.id].spreadsheet) items[item.id].spreadsheet=item.spreadsheet; items[item.id][item.attribute_id] = item.value; return items}, {})
   items = Object.entries(items).map(([item, attrs]) => {
     newAttrs = {...attrs}
     newAttrs['id'] = item
@@ -413,8 +423,9 @@ app.get('/api/projects/:id/items', async (req, res) => {
 })
 
 app.post('/api/projects/:id/items', async (req, res) => {
-  data = await turso.execute("INSERT INTO items (project_id) VALUES (?)", [req.params.id]);
   attributes = req.body.attributes
+  if (attributes.some((attr)=>hasPermission(req.headers['user-id'], req.params.id, attr.id, LEVEL_EDIT)))
+  data = await turso.execute("INSERT INTO items (project_id, spreadsheet) VALUES (?, ?)", [req.params.id, req.body.spreadsheet]);
   for (const [attr, value] of Object.entries(attributes)) {
     turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [data.lastInsertRowid, attr, value]);
   }
@@ -424,9 +435,11 @@ app.post('/api/projects/:id/items', async (req, res) => {
 app.put('/api/projects/:pId/items/:iId', async (req, res) => {
   attributes = req.body.attributes
   for (let [attr, value] of Object.entries(attributes)) {
+    if (!hasPermission(req.headers['user-id'], req.params.pId, attr, LEVEL_EDIT))
+      continue;
     const oldData = await turso.execute("SELECT * FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.params.iId, attr]);
     if (oldData.rows[0] == null){
-      data = await turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value, last_editor) VALUES (?, ?, ?, ?)", [req.params.iId, attr, value, req.headers['user-id']]);
+      data = await turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [req.params.iId, attr, value]);
       notify('change', {projectId: req.params.pId, cellId: data.lastInsertRowid, newValue: value, oldValue: null})
       res.json({ item: data.lastInsertRowid.toString() });
     } else {
@@ -443,7 +456,7 @@ app.put('/api/projects/:pId/items/:iId', async (req, res) => {
 })
 
 app.get('/api/projects/:id/attributes', async (req, res) => {
-  data = await turso.execute("SELECT * FROM attributes\
+  const data = await turso.execute("SELECT * FROM attributes\
     WHERE attributes.project_id = ? AND attributes.id IN \
     (SELECT attribute_id FROM role_attributes\
     INNER JOIN participations ON participations.role_id = role_attributes.role_id\
@@ -454,8 +467,17 @@ app.get('/api/projects/:id/attributes', async (req, res) => {
 
 app.post('/api/projects/:id/attributes', async (req, res) => {
   if (hasPermission(req.headers["user-id"], req.params.id, "columns", LEVEL_EDIT)){
-    data = await turso.execute("INSERT INTO attributes (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id]);
-    res.json({ spreadsheet: data.rows[0] });
+    const data = await turso.execute("INSERT INTO attributes (name, project_id, spreadsheet) VALUES (?, ?, ?)", [req.body.name, req.params.id, req.body.spreadsheet]);
+    const roles = await turso.execute("SELECT * FROM roles \
+      LEFT JOIN participations ON participations.role_id = roles.id \
+      WHERE roles.project_id = ?", [req.params.id]);
+    for (let i = 0; i < roles.rows.length; i++) {
+      if (roles.rows[i].user_id == req.headers["user-id"] || roles.rows[i].name == "admin")
+        turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 2)", [roles.rows[i].id, data.lastInsertRowid]);
+      else
+        turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [roles.rows[i].id, data.lastInsertRowid]);
+    }
+    res.json({ attributeId: data.lastInsertRowid.toString() });
   } else 
     res.status(403).json({ error: "No permission" });
 })
@@ -469,5 +491,5 @@ app.put('/api/projects/:pid/attributes/:aid', async (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Example app listening at http://localhost:`+port);
 });
