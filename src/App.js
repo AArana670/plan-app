@@ -11,6 +11,7 @@ import Calendar from './pages/calendar';
 import Users from './pages/users';
 import Roles from './pages/roles';
 import Profile from './pages/profile';
+import Invite from './pages/invite';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/project/:id/users" component={Users} />
         <Route path="/project/:id/roles" component={Roles} />
         <Route path="/profile/:username" component={Profile} />
+        <Route path="/invite/:pId/:rId" component={Invite} />
       </Switch>
     </div>
   );

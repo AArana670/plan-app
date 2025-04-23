@@ -8,8 +8,12 @@ import axios from "axios";
 
 const InviteDialog = ({id, roles}) => {
 
-    function copy(){
-        navigator.clipboard.writeText("plan.app/invite/"+id)
+    const [selectedRole, setSelectedRole] = useState(roles[0] ? roles[0].id : null)
+    if (selectedRole == null && roles[0])
+        setSelectedRole(roles[0].id)
+
+    function copy(e){
+        navigator.clipboard.writeText("plan.app/invite/"+id+"/"+selectedRole)
     }
 
     return (
@@ -18,9 +22,9 @@ const InviteDialog = ({id, roles}) => {
             <div className="invite-options">
                 <div className="invite-option">
                     <input placeholder="correo electrónico" />
-                    <select className="role-select" id={"invite-role"}>
+                    <select className="role-select" id="invite-role" onChange={(e)=>setSelectedRole(e.target.value)}>
                         {roles.map((role) => {
-                            return <option>{role}</option>
+                            return <option value={role.id}>{role.name}</option>
                         })}
                     </select>
                     <Dialog.Close className="main-btn">Invitar</Dialog.Close>
@@ -28,7 +32,7 @@ const InviteDialog = ({id, roles}) => {
                 <hr/>
                 <div className="invite-option">
                     <p>Enlace de invitación</p>
-                    <input disabled id="invite-link" value={"plan.app/invite/"+id} />
+                    <input disabled id="invite-link" value={"localhost:3000/invite/"+id+"/"+selectedRole} />
                     <Dialog.Close className="main-btn" onClick={copy}>Copiar Enlace</Dialog.Close>
                 </div>
             </div>
@@ -40,17 +44,22 @@ const InviteDialog = ({id, roles}) => {
 const UserList = ({projectId, roles}) => {
 
     function updateUsers(event) {
-        console.log(event.target.value)
-        let newUsers = [...users]
-        newUsers[event.target.id.split("-")[1]].role = event.target.value
-        setUsers(newUsers)
+        const idx = event.target.id.split("-")[1]
+        axios.put("http://localhost:8080/api/projects/"+projectId+"/users", 
+            {userId: users[idx].id, roleId: event.target.value}, 
+            {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+                if (res.status == 200){
+                    let newUsers = [...users]
+                    newUsers[idx].role = event.target.value
+                    setUsers(newUsers)
+                }
+        })
     }
     
     const [users, setUsers] = useState([]);
 
     React.useEffect(() => {
         axios.get("http://localhost:8080/api/projects/"+projectId+"/users").then((res) => {
-            console.log(res.data.users)
             setUsers(res.data.users)
         });
     }, []);
@@ -63,7 +72,7 @@ const UserList = ({projectId, roles}) => {
             {users[i].username}
             <select className="role-select" id={"select-"+i} onChange={updateUsers}>
                 {roles.map((role) => {
-                    return <option selected={role===users[i].name}>{role}</option>
+                    return <option selected={role.name===users[i].name} value={role.id}>{role.name}</option>
                 })}
             </select>
         </div>)
@@ -81,7 +90,7 @@ const Users = ({id, params}) => {
 
     React.useEffect(() => {
         axios.get("http://localhost:8080/api/projects/"+params.id+"/roles").then((res) => {
-            setRoles(res.data.roles.map((role) => role.name))
+            setRoles(res.data.roles)
         });
     }, []);
 

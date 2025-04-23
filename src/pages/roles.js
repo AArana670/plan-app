@@ -6,6 +6,7 @@ import "../styles/roles.css";
 import axios from "axios";
 
 const RoleDialog = ({roles, setRoles, id}) => {
+    console.log(roles)
 
     function addRole(e) {
         const newRole = document.getElementById("new-role").value
@@ -14,10 +15,11 @@ const RoleDialog = ({roles, setRoles, id}) => {
         axios.post("http://localhost:8080/api/projects/"+id+"/roles", {
             name: newRole
         }).then((res) => {
+            const roleId = res.data.roleId
             const newRoles = {...roles}
-            newRoles[newRole] = {}
-            for (let i in newRoles['admin']){
-                newRoles[newRole][i] = 0
+            newRoles[newRole] = {id: roleId, accesses: {}}
+            for (let i in newRoles['admin'].accesses){
+                newRoles[newRole].accesses[i] = 0
             }
             setRoles(newRoles)
         })

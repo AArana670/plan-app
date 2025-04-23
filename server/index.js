@@ -77,6 +77,20 @@ app.post('/api/projects', async (req, res) => {
   res.json({ project: data.rows[0] });
 });
 
+app.put('/api/projects', async (req, res) => {
+  try{
+    const participations = await turso.execute('SELECT * FROM participations WHERE project_id = ? AND user_id = ?', [req.body.projectId, req.headers['user-id']])
+    if (participations.rows.length == 0) {
+      const data = await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], req.body.projectId, req.body.roleId])
+    }
+  }catch (e) {
+    console.log(e)
+    res.status(500)
+    return
+  }
+  res.json({ project: data.lastInsertRowid.toString()})
+})
+
 app.put('/api/projects/:id', async (req, res) => {
   let newValue;
   try{
@@ -280,7 +294,7 @@ app.post('/api/projects/:id/roles', async (req, res) => {
     turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [role.lastInsertRowid, attributes.rows[i].id]);
   }
 
-  res.json({ role: role.rows[0] });
+  res.json({ roleId: role.lastInsertRowid.toString() });
 })
 
 app.get('/api/projects/:pid/roles/:rid', async (req, res) => {
@@ -300,12 +314,21 @@ app.put('/api/projects/:pid/roles/:rid', async (req, res) => {
   })
 })
 
-app.get('/api/projects/:id/users/', async (req, res) => {
+app.get('/api/projects/:id/users', async (req, res) => {
   data = await turso.execute("SELECT * FROM users\
       INNER JOIN participations on participations.user_id = users.id\
       INNER JOIN roles on roles.id = participations.role_id\
       WHERE participations.project_id = ?", [req.params.id]);
   res.json({ users: data.rows });
+})
+
+app.put('/api/projects/:id/users', async (req, res) => {
+  if (!hasPermission(req.headers['user-id'], req.params.id, 'admin')){
+    res.status(403).json({ error: "Missing permissions" });
+    return;
+  }
+  data = await turso.execute('UPDATE participations SET role_id = ? WHERE user_id = ? AND project_id = ?', [req.body.roleId, req.body.userId, req.params.id])
+  res.json({ user: data.rows[0] });
 })
 
 app.get('/api/users/:id/roles/', async (req, res) => {
@@ -420,9 +443,13 @@ app.put('/api/projects/:pId/items/:iId', async (req, res) => {
 })
 
 app.get('/api/projects/:id/attributes', async (req, res) => {
-  data = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id]);
-  allowed_data = data.rows.filter((row) => hasPermission(req.headers["user-id"], req.params.id, row.name, LEVEL_VIEW));
-  res.json({ attributes: allowed_data });
+  data = await turso.execute("SELECT * FROM attributes\
+    WHERE attributes.project_id = ? AND attributes.id IN \
+    (SELECT attribute_id FROM role_attributes\
+    INNER JOIN participations ON participations.role_id = role_attributes.role_id\
+    WHERE participations.user_id = ? AND role_attributes.level >= ?)", [req.params.id, req.headers["user-id"], LEVEL_VIEW]);
+  //allowed_data = data.rows.filter((row) => hasPermission(req.headers["user-id"], req.params.id, row.name, LEVEL_VIEW));
+  res.json({ attributes: data.rows });
 })
 
 app.post('/api/projects/:id/attributes', async (req, res) => {
