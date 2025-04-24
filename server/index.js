@@ -145,7 +145,8 @@ app.delete('/api/projects/:id', async (req, res) => {
 app.get('/api/users/:id/events', async (req, res) => {
   let data = await turso.execute("SELECT * FROM events\
       INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
-      INNER JOIN participations on participations.role_id = role_attributes.role_id WHERE user_id = ?", [req.params.id]);
+      INNER JOIN participations on participations.role_id = role_attributes.role_id\
+      WHERE user_id = ? AND role_attributes.level >= ?", [req.params.id, LEVEL_VIEW]);
   data = data.rows.map((event) => {event.title = event.name; 
     event.date = event.start_time.split(' ')[0]; 
     event.end = event.end_time.split(' ')[0]; 
@@ -163,7 +164,7 @@ app.get('/api/projects/:id/events', async (req, res) => {
   let data = await turso.execute("SELECT * FROM events\
       INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
       INNER JOIN participations on role_attributes.role_id = participations.role_id\
-      WHERE participations.project_id = ? and user_id = ?", [req.params.id, req.headers["user-id"]]);
+      WHERE participations.project_id = ? and user_id = ? AND role_attributes.level >= ?", [req.params.id, req.headers["user-id"], LEVEL_VIEW]);
   data = data.rows.map((event) => {event.title = event.name; 
     event.start = event.start_time.split(' ')[0]; 
     event.end = event.end_time.split(' ')[0]; 
