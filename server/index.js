@@ -288,7 +288,7 @@ app.put('/api/users/:id/notifications', async (req, res) => {
 
   [project, value] = Object.entries(req.body)[0]
 
-  const data = await turso.execute("UPDATE participations SET last_notification = ? WHERE project_id = ? AND user_id = ?", [project, value, req.params.id])
+  const data = await turso.execute("UPDATE participations SET last_notification = ? WHERE project_id = ? AND user_id = ?", [value, project, req.params.id])
   res.json({ notifications: data.rows });
 })
 

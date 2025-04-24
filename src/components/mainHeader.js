@@ -64,9 +64,10 @@ function Chat({id}) {
   </div>);
 }
 
-const signOut= () => {
-  sessionStorage.removeItem('userId');
-  window.location.href = "/login";
+function signOut() {
+  sessionStorage.removeItem('userId')
+  sessionStorage.removeItem('lastNotification')
+  window.location.href = "/login"
 }
 
 function Profile({userId}) {
@@ -90,17 +91,24 @@ function Profile({userId}) {
   );
 }
 
-function Notifications({id, messages, setLastNotification}) {
-
+function updateLastNotification(id, messages, setLastNotification){
+  if (!sessionStorage.getItem('lastNotification')){
+    setLastNotification(0)
+    sessionStorage.setItem('lastNotification', 0)
+  }
   if (id && sessionStorage.getItem('lastNotification') < messages[0].id){
     axios.put('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', 
     {[id]: messages[0].id}, {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
       if (res.status == 200) {
+        alert('owo')
         setLastNotification(messages[0].id);
         sessionStorage.setItem('lastNotification', messages[0].id);
       }
     })
   }
+}
+
+function Notifications({id, messages}) {
 
   const notifications = messages.map((message) => {
     if (message.comment) {
@@ -159,11 +167,6 @@ function NotificationsBtn({alert, onClick}) {
   </div>)
 }
 
-function getUserId() {
-  const userId = sessionStorage.getItem('userId');
-  return userId;
-}
-
 async function getProjectName(id) {
   if (id){
     if (!sessionStorage.getItem('projectId') || sessionStorage.getItem('projectId')!= id){
@@ -179,7 +182,8 @@ async function getProjectName(id) {
 const ProjectHeader = ({id, current, isAdmin, params}) => {
   const [visibleChat, setVisibleChat] = useState(false)
   const [visibleNotifications, setVisibleNotifications] = useState(false)
-  const userId = getUserId()
+  
+  const userId = sessionStorage.getItem('userId');
   
   const [projectName, setProjectName] = useState(null)
   useEffect(() => {
@@ -193,7 +197,9 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   useEffect(() => {
     if (sessionStorage.getItem('projectId')){
       axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        console.log(res)
         setAdmin(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).name === 'admin')
+        setLastNotification(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).last_notification)
       })
     } else {
       setAdmin(false)
@@ -203,6 +209,8 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   const [notifications, setNotifications] = useState([])
 
   const [lastNotification, setLastNotification] = useState(sessionStorage.getItem('lastNotification'))
+  console.log(sessionStorage.getItem('lastNotification'))
+  console.log(lastNotification)
   const newNotifications = notifications.filter((notification) => notification.id > lastNotification).length
 
   useEffect(() => {
@@ -217,8 +225,6 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
     }
 }, [])
 
-  const messages = [{type: "comment", sender: "U1", column: "Luz", row: "Estatua 2", value: "290", message: "Yo opino que opinar es necesario porque tengo inteligencia y por eso siempre opino."},
-    {type: "change", sender: "U2", column: "Luz", row: "Estatua 2", oldValue: "290", newValue: "320"}]
   
   if (!id) {
     return (
@@ -227,12 +233,12 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
           <img src="/icons/menu.svg" alt="Menu" />
         </a>
         <div>
-          <NotificationsBtn alert={0} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
+          <NotificationsBtn alert={0} onClick={() => {setVisibleNotifications(!visibleNotifications); updateLastNotification(id, notifications, setLastNotification)}}/>
           <Profile userId={userId} current={current}/>
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
-            <Notifications id={id} messages={notifications} setLastNotification={setLastNotification}/>)}/>
+            <Notifications id={id} messages={notifications}/>)}/>
       </header>
     )
   }
@@ -240,7 +246,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   return (
     <header className="header">
       <div>
-        <a className="header-menu" href="/projects" onClick={()=>{sessionStorage.removeItem('projectId'); sessionStorage.removeItem('projectName')}}>
+        <a className="header-menu" href="/projects" onClick={()=>{sessionStorage.removeItem('projectId'); sessionStorage.removeItem('projectName'); sessionStorage.removeItem('lastNotification')}}>
           <img src="/icons/menu.svg" alt="menu" />
         </a>
         <h2 className="project-name">{projectName}</h2>
@@ -260,7 +266,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
         </button>
       </div>
       <div>
-        <NotificationsBtn alert={newNotifications} onClick={() => setVisibleNotifications(!visibleNotifications)}/>
+        <NotificationsBtn alert={newNotifications} onClick={() => {setVisibleNotifications(!visibleNotifications); updateLastNotification(id, notifications, setLastNotification)}}/>
         <Profile userId={userId} current={current}/>
       </div>
       <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
@@ -268,7 +274,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
         <Chat id={id}/>)}/>
       <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
         content={()=>(
-        <Notifications id={id} messages={notifications} setLastNotification={setLastNotification}/>)}/>
+        <Notifications id={id} messages={notifications}/>)}/>
     </header>
   )
 }
