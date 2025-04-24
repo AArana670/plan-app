@@ -4,9 +4,12 @@
 }
 
 .roles-list {
+    top: 40vh;
     display: flex;
     gap: 30px;
     height: fit-content;
+    overflow: auto;
+    padding-block: 4vh;
 }
 
 .role {

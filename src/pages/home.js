@@ -107,19 +107,24 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
             if (idx == 'newRow'){
                 const newRow = {}
                 newRow[fieldName] = change.newCell.text
-                const res = await axios.post('http://localhost:8080/api/projects/'+pId+'/items', 
-                    {attributes: newRow, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}})
-                newRow['id'] = res.data.id
-                newRows.push(newRow)
+                await axios.post('http://localhost:8080/api/projects/'+pId+'/items', 
+                    {attributes: newRow, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
+                        if (res.status==200){
+                            newRow['id'] = res.data.id
+                            newRows.push(newRow)
+                        }
+                    }).catch((e)=>{})
             }else {
-                axios.put('http://localhost:8080/api/projects/'+pId+'/items/'+idx, {attributes: {[fieldName]: change.newCell.text}}, {headers: {'user-id': sessionStorage.getItem('userId')}})
-                newRows.map((item)=>{if (item.id === idx) item[fieldName] = change.newCell.text; return item})
+                axios.put('http://localhost:8080/api/projects/'+pId+'/items/'+idx, 
+                    {attributes: {[fieldName]: change.newCell.text}}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
+                        if (res.status==200){
+                            newRows.map((item)=>{if (item.id === idx) item[fieldName] = change.newCell.text; return item})
+                        }
+                    }).catch((e)=>{})
             }
         });
         setRows(newRows)
-    };
-
-    console.log(columns)
+    }
     
     const applyChangesToColumns = (changes) => {
         const newColumns = [...columns]
@@ -340,7 +345,9 @@ const Home = ({params}) => {
                         </Dialog.Portal>
                     </Dialog.Root>
                 </header>
-                <Spreadsheet group={tabValues.indexOf(selectedTab)+1} columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
+                <div className="spreadsheet">
+                    <Spreadsheet group={tabValues.indexOf(selectedTab)+1} columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
+                </div>
             </main>
         </div>
     )

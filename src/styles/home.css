@@ -18,6 +18,10 @@
     margin-inline: -2vw;
 }
 
+.spreadsheet{
+    overflow: auto;
+}
+
 .excel {
     display: flex;
     flex-direction: column;

@@ -35,11 +35,11 @@ async function hasPermission(user, project, attr, level) {
   const role = roles.rows[0]
   if (role.name=='admin') return true
 
-  const permissions = await turso.execute("SELECT name, level FROM role_attributes\
+  const permissions = await turso.execute("SELECT attribute_id, name, level FROM role_attributes\
     INNER JOIN attributes ON attributes.id = role_attributes.attribute_id\
     WHERE role_id = ?", [role.role_id])
 
-  const permission = permissions.rows.find((permission) => permission.name == attr)
+  const permission = permissions.rows.find((permission) => (permission.name == attr || permission.attribute_id.toString() == attr))
   if (!permission) return false
   return permission.level >= level
 }
@@ -121,6 +121,8 @@ app.put('/api/projects/:id', async (req, res) => {
 
 app.delete('/api/projects/:id', async (req, res) => {
   try{
+    await turso.execute("DELETE FROM notifications WHERE project_id = ?", [req.params.id])
+    await turso.execute("DELETE FROM events WHERE project_id = ?", [req.params.id])
     const items = await turso.execute("SELECT id FROM items WHERE project_id = ?", [req.params.id])
     await turso.execute("DELETE FROM item_attributes WHERE item_id IN (" + items.rows.map((item) => item.id).join(",") + ")")
     await turso.execute("DELETE FROM items WHERE project_id = ?", [req.params.id])
@@ -334,7 +336,7 @@ app.get('/api/projects/:id/users', async (req, res) => {
 
 app.put('/api/projects/:id/users', async (req, res) => {
   if (!hasPermission(req.headers['user-id'], req.params.id, 'admin')){
-    res.status(403).json({ error: "Missing permissions" });
+    res.status(401).json({ error: "Missing permissions" });
     return;
   }
   data = await turso.execute('UPDATE participations SET role_id = ? WHERE user_id = ? AND project_id = ?', [req.body.roleId, req.body.userId, req.params.id])
@@ -424,9 +426,18 @@ app.get('/api/projects/:id/items', async (req, res) => {
 
 app.post('/api/projects/:id/items', async (req, res) => {
   attributes = req.body.attributes
-  if (attributes.some((attr)=>hasPermission(req.headers['user-id'], req.params.id, attr.id, LEVEL_EDIT)))
+  allowedAttributes = Object.keys(attributes).filter(async (attr) => await hasPermission(req.headers['user-id'], req.params.id, attr, LEVEL_EDIT)==true)
+  promises = Object.keys(attributes).map(async ([attr, value]) => [attr, value, await hasPermission(req.headers['user-id'], req.params.id, attr, LEVEL_EDIT)])
+  allowedAttributes = (await Promise.all(promises)).filter(([attr, value, permission]) => permission)
+
+  if (allowedAttributes.length == 0){
+    res.status(401).json({ error: "Missing permissions" });
+    return;
+  }
   data = await turso.execute("INSERT INTO items (project_id, spreadsheet) VALUES (?, ?)", [req.params.id, req.body.spreadsheet]);
-  for (const [attr, value] of Object.entries(attributes)) {
+  for (const [attr, value, permission] of allowedAttributes) {
+    if (permission)
+      continue;
     turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [data.lastInsertRowid, attr, value]);
   }
   res.json({ item: data.rows[0] });
@@ -435,22 +446,25 @@ app.post('/api/projects/:id/items', async (req, res) => {
 app.put('/api/projects/:pId/items/:iId', async (req, res) => {
   attributes = req.body.attributes
   for (let [attr, value] of Object.entries(attributes)) {
-    if (!hasPermission(req.headers['user-id'], req.params.pId, attr, LEVEL_EDIT))
-      continue;
-    const oldData = await turso.execute("SELECT * FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.params.iId, attr]);
-    if (oldData.rows[0] == null){
-      data = await turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [req.params.iId, attr, value]);
-      notify('change', {projectId: req.params.pId, cellId: data.lastInsertRowid, newValue: value, oldValue: null})
-      res.json({ item: data.lastInsertRowid.toString() });
-    } else {
-      const oldValue = oldData.rows[0].value
-      if (oldValue != value){
-        data = await turso.execute("UPDATE item_attributes SET value = ?, last_editor = ? WHERE item_id = ? AND attribute_id = ?", [value, req.headers['user-id'], req.params.iId, attr]);
-        notify('change', {projectId: req.params.pId, cellId: oldData.rows[0].id, newValue: value, oldValue: oldValue})
-        res.json({ item: data.rows[0] });
+    if (await hasPermission(req.headers['user-id'], req.params.pId, attr, LEVEL_EDIT)) {
+      const oldData = await turso.execute("SELECT * FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.params.iId, attr]);
+      if (oldData.rows[0] == null){
+        data = await turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [req.params.iId, attr, value]);
+        notify('change', {projectId: req.params.pId, cellId: data.lastInsertRowid, newValue: value, oldValue: null})
+        res.json({ item: data.lastInsertRowid.toString() });
       } else {
-        res.json({ item: oldData.rows[0] });
+        const oldValue = oldData.rows[0].value
+        if (oldValue != value){
+          data = await turso.execute("UPDATE item_attributes SET value = ?, last_editor = ? WHERE item_id = ? AND attribute_id = ?", [value, req.headers['user-id'], req.params.iId, attr]);
+          notify('change', {projectId: req.params.pId, cellId: oldData.rows[0].id, newValue: value, oldValue: oldValue})
+          res.json({ item: data.rows[0] });
+        } else {
+          res.json({ item: oldData.rows[0] });
+        }
       }
+    } else {
+      res.status(401).json({ error: "Missing permissions" });
+      return;
     }
   }
 })
@@ -479,7 +493,7 @@ app.post('/api/projects/:id/attributes', async (req, res) => {
     }
     res.json({ attributeId: data.lastInsertRowid.toString() });
   } else 
-    res.status(403).json({ error: "No permission" });
+    res.status(401).json({ error: "No permission" });
 })
 
 app.put('/api/projects/:pid/attributes/:aid', async (req, res) => {
@@ -487,7 +501,7 @@ app.put('/api/projects/:pid/attributes/:aid', async (req, res) => {
     data = await turso.execute("UPDATE attributes SET name = ? WHERE id = ?", [req.body.name, req.params.aid]);
     res.json({ spreadsheet: data.rows[0] });
   } else
-    res.status(403).json({ error: "No permission" });
+    res.status(401).json({ error: "No permission" });
 })
 
 app.listen(port, () => {
