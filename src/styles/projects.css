@@ -63,7 +63,7 @@
 
 .card img {
     height: 20vh;
-    width: 10vw;
+    width: 100%;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
 }
