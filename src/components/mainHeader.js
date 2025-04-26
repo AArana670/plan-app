@@ -28,12 +28,29 @@ function Chat({id}) {
     })
   }, [])
   
+  const [authorImages, setAuthorImages] = useState(messages.map(()=>0))
+  
+  useEffect(() => {
+    //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+    const promises = messages.map((message) => window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(message.username))
+                          .then((hashBuffer) => {
+                            const hashArray = Array.from(new Uint8Array(hashBuffer))
+
+                            // convert bytes to hex string                  
+                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+                            return new Identicon(hashHex.padStart(15, ' '), {'background': [hashArray[0], hashArray[1], hashArray[2], 100]})
+                          }))
+    Promise.all(promises).then((hashes) => {
+      setAuthorImages(hashes)
+    })
+  }, [messages])
+
   const chat = messages.map((message) => {
     const imgHash = new Identicon(message.userId.toString().padStart(15, '0')).toString();
     if (message['comment_value']) {
       return (
         <div className="sidebar-message">
-          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + authorImages[messages.indexOf(message)]}/>
           <div className="chat-comment">
             <div className="comment-header">
               <span className="comment-key">Ha comentado en <b>{message.name}</b> de <b>{message.value}</b> </span>
@@ -46,7 +63,7 @@ function Chat({id}) {
     } else {
       return (
         <div className="sidebar-message">
-          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + imgHash}/>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + authorImages[messages.indexOf(message)]}/>
           <div className="chat-text">{message.text}</div>
         </div>
       )
@@ -66,17 +83,27 @@ function Chat({id}) {
 
 function signOut() {
   sessionStorage.removeItem('userId')
+  sessionStorage.removeItem('username')
   sessionStorage.removeItem('lastNotification')
   window.location.href = "/login"
 }
 
-function Profile({userId}) {
-  const imgHash = new Identicon(userId.toString().padStart(15, '0')).toString();
+function Profile({userId, username}) {
+
+  const [picture, setPicture] = useState(0)
+  window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(username))
+        .then((hashBuffer) => {
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+          // convert bytes to hex string                  
+          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          setPicture(new Identicon(hashHex.padStart(15, ' '), {'background': [hashArray[0], hashArray[1], hashArray[2], 255]}))
+        })
 
   return (
     <Menu.Root>
       <Menu.Trigger className="header-btn">
-        <img src={"data:image/png;base64," + imgHash} alt="profile" />
+        <img src={"data:image/png;base64," + picture} alt="profile" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner className="dropdown-menu" sideOffset={8}>
@@ -100,7 +127,6 @@ function updateLastNotification(id, messages, setLastNotification){
     axios.put('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', 
     {[id]: messages[0].id}, {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
       if (res.status == 200) {
-        alert('owo')
         setLastNotification(messages[0].id);
         sessionStorage.setItem('lastNotification', messages[0].id);
       }
@@ -110,18 +136,34 @@ function updateLastNotification(id, messages, setLastNotification){
 
 function Notifications({id, messages}) {
 
+  const [authorImages, setAuthorImages] = useState(messages.map(()=>0))
+
+  useEffect(() => {
+    //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+    const promises = messages.map((message) => window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(message.username))
+                          .then((hashBuffer) => {
+                            const hashArray = Array.from(new Uint8Array(hashBuffer))
+
+                            // convert bytes to hex string                  
+                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+                            return new Identicon(hashHex.padStart(15, ' '), {'background': [hashArray[0], hashArray[1], hashArray[2], 100]})
+                          }))
+    Promise.all(promises).then((hashes) => {
+      setAuthorImages(hashes)
+    })
+  }, [messages])
+
   const notifications = messages.map((message) => {
-    if (message.comment) {
-      const imgHash = new Identicon(message.comment.userId.toString().padStart(15, '0')).toString();
+    if (message.comment_cell) {
       return (
         <div className="sidebar-message">
-          <img className="sidebar-message-sender" alt={message.comment.username} src={"data:image/png;base64," + imgHash}/>
+          <img className="sidebar-message-sender" alt={message.username} src={"data:image/png;base64," + authorImages[messages.indexOf(message)]}/>
           <div className="notifications-comment">
             <div className="comment-header">
               <span className="comment-key">Ha comentado en <b>{message.comment.name}</b> de <b>{message.comment.value}</b> </span>
-              <span className="sidebar-message-value">{message.comment.comment_value}</span>
+              <span className="sidebar-message-value">{message.comment_value}</span>
             </div>
-            <div className="notifications-text">{message.comment.text}</div>
+            <div className="notifications-text">{message.text}</div>
           </div>
         </div>
       )
@@ -129,7 +171,7 @@ function Notifications({id, messages}) {
       const imgHash = new Identicon(message.change_author.toString().padStart(15, '0')).toString();
       return (
         <div className="sidebar-message">
-          <img className="sidebar-message-sender" alt={message.change_author} src={"data:image/png;base64," + imgHash}/>
+          <img className="sidebar-message-sender" alt={message.change_author} src={"data:image/png;base64," + authorImages[messages.indexOf(message)]}/>
           <div className="change-header">
             <span className="change-key">Ha modificado en <b>{message.name}</b> de <b>{message.value}</b> </span>
             <div className="change-body">
@@ -184,6 +226,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   const [visibleNotifications, setVisibleNotifications] = useState(false)
   
   const userId = sessionStorage.getItem('userId');
+  const username = sessionStorage.getItem('username');
   
   const [projectName, setProjectName] = useState(null)
   useEffect(() => {
@@ -197,7 +240,6 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   useEffect(() => {
     if (sessionStorage.getItem('projectId')){
       axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
-        console.log(res)
         setAdmin(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).name === 'admin')
         setLastNotification(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).last_notification)
       })
@@ -209,8 +251,6 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
   const [notifications, setNotifications] = useState([])
 
   const [lastNotification, setLastNotification] = useState(sessionStorage.getItem('lastNotification'))
-  console.log(sessionStorage.getItem('lastNotification'))
-  console.log(lastNotification)
   const newNotifications = notifications.filter((notification) => notification.id > lastNotification).length
 
   useEffect(() => {
@@ -234,7 +274,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
         </a>
         <div>
           <NotificationsBtn alert={0} onClick={() => {setVisibleNotifications(!visibleNotifications); updateLastNotification(id, notifications, setLastNotification)}}/>
-          <Profile userId={userId} current={current}/>
+          <Profile userId={userId} username={username} current={current}/>
         </div>
         <Sidebar visible={visibleNotifications} position="right" onHide={() => setVisibleNotifications(false)}
           content={()=>(
@@ -267,7 +307,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
       </div>
       <div>
         <NotificationsBtn alert={newNotifications} onClick={() => {setVisibleNotifications(!visibleNotifications); updateLastNotification(id, notifications, setLastNotification)}}/>
-        <Profile userId={userId} current={current}/>
+        <Profile userId={userId} username={username} current={current}/>
       </div>
       <Sidebar visible={visibleChat} position="right" onHide={() => setVisibleChat(false)}
         content={()=>(

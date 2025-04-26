@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/mainHeader";
 import {MainButton} from "../components/buttons";
 import FullCalendar from '@fullcalendar/react'
@@ -11,6 +11,8 @@ import { Dialog } from '@base-ui-components/react/dialog';
 import { Menu } from '@base-ui-components/react/menu';
 import "../styles/projects.css";
 import axios from 'axios';
+import Identicon from "identicon.js";
+import { useSearch } from "wouter";
 
 
 const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents}) => {
@@ -101,10 +103,26 @@ const RenameProjectDialog = ({selectedProject, onSubmit, visible, setVisible}) =
 const CardList = ({cards, setSelectedProject, setDeleteVisible, setRenameVisible, archived, archiveProject}) => {
   var cardElems = [];
 
+  const [cardImages, setCardImages] = useState(cards.map(()=>0))
+  
+  //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+  const promises = cards.map((card) => window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(card.id))
+                        .then((hashBuffer) => {
+                          const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+                          // convert bytes to hex string                  
+                          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                          return new Identicon(hashHex.padStart(15, ' '), {'background': [hashArray[0], hashArray[1], hashArray[2], 100]})
+                        }))
+
+  Promise.all(promises).then((hashes) => {
+    setCardImages(hashes)
+  })
+
   for (let i in cards) {
     cardElems.push(
       <a className="card" href={"/project/"+cards[i].id}>
-        <img src="https://picsum.photos/200" alt={cards[i].name}/>
+        <img src={'data:image/png;base64,' + cardImages[i]} alt={cards[i].name}/>
         <div className="card-overlay">
           <h2>{cards[i].name}</h2>
           {cards[i].role=='admin'? <Menu.Root>

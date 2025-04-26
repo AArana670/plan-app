@@ -184,16 +184,30 @@ app.post('/api/projects/:id/events', async (req, res) => {
 })
 
 //region Messages & Notifications
-async function getMessages(projectId) {
-  let data = await turso.execute('SELECT messages.id, users.id as userId, users.username, text, name.value, comment_value, attributes.name FROM messages\
-    LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
-    LEFT JOIN items ON items.id = cell.item_id\
-    LEFT JOIN attributes ON attributes.id = cell.attribute_id\
-    INNER JOIN users ON users.id = messages.author_id\
-    LEFT JOIN item_attributes name ON name.item_id = items.id\
-    WHERE messages.project_id = ?\
-    ORDER BY messages.id, name.id', [projectId]);
-  data = data.rows.reduce(([list, ids], message)=>{if (!(message.id in ids)){ids.push(message.id); list.push(message);} return [list, ids]}, [[],[]])[0]
+async function getMessages(params) {
+  var data = []
+  if (params.userId) {
+    data = await turso.execute('SELECT messages.id, users.id as userId, users.username, text, name.value, comment_value, attributes.name FROM messages\
+      LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
+      LEFT JOIN items ON items.id = cell.item_id\
+      LEFT JOIN attributes ON attributes.id = cell.attribute_id\
+      INNER JOIN participations ON participations.project_id = messages.project_id\
+      INNER JOIN users ON users.id = messages.author_id\
+      LEFT JOIN item_attributes name ON name.item_id = items.id\
+      WHERE participations.user_id = ?\
+      ORDER BY messages.id, name.id', [params.userId]);
+    data = data.rows.reduce(([list, ids], message)=>{if (!(ids.includes(message.id))){ids.push(message.id); list.push(message);} return [list, ids]}, [[],[]])[0]
+  } else if (params.projectId) {
+    data = await turso.execute('SELECT messages.id, users.id as userId, users.username, text, name.value, comment_value, attributes.name FROM messages\
+      LEFT JOIN item_attributes as cell ON cell.id = messages.comment_cell\
+      LEFT JOIN items ON items.id = cell.item_id\
+      LEFT JOIN attributes ON attributes.id = cell.attribute_id\
+      INNER JOIN users ON users.id = messages.author_id\
+      LEFT JOIN item_attributes name ON name.item_id = items.id\
+      WHERE messages.project_id = ?\
+      ORDER BY messages.id, name.id', [params.projectId]);
+    data = data.rows.reduce(([list, ids], message)=>{if (!(ids.includes(message.id))){ids.push(message.id); list.push(message);} return [list, ids]}, [[],[]])[0]
+  }
   return data
 }
 
@@ -202,7 +216,7 @@ app.get('/api/projects/:id/messages', async (req, res) => {
     res.status(401).json({ error: "Missing userId" });
     return;
   }
-  let data = await getMessages(req.params.id)
+  let data = await getMessages({'projectId': req.params.id})
   res.json({ messages: data.reverse() })
 })
 
@@ -222,7 +236,6 @@ app.post('/api/projects/:id/messages', async (req, res) => {
     let cellId = await turso.execute("SELECT id FROM item_attributes WHERE item_id = ? AND attribute_id = ?", [req.body.comment.row, req.body.comment.column])
     cellId = cellId.rows[0].id
     data = await turso.execute("INSERT INTO messages (project_id, author_id, text, comment_cell, comment_value) VALUES (?, ?, ?, ?, ?)", [req.params.id, req.headers["user-id"], req.body.text, cellId, req.body.comment.value]);
-    await turso.execute("INSERT INTO notifications (project_id, message_id) VALUES (?, ?)", [req.params.id, data.lastInsertRowid])
     notify('comment', {projectId: req.params.id, messageId: data.lastInsertRowid})
   }
   res.json({ message: data.lastInsertRowid.toString() })
@@ -250,22 +263,29 @@ app.get('/api/projects/:id/notifications', async (req, res) => {
     return;
   }
 
-  let data = await turso.execute("SELECT notifications.*, messages.*, name.value, attributes.name FROM notifications\
+  let data = await turso.execute("SELECT notifications.*, messages.*, name.value, attributes.name, comment_user.username, change_user.username FROM notifications\
     LEFT JOIN messages ON messages.id = notifications.message_id\
+    LEFT JOIN users comment_user ON comment_user.id = messages.author_id\
+    LEFT JOIN users change_user ON change_user.id = notifications.change_author\
     LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
     LEFT JOIN attributes ON attributes.id = item_attributes.attribute_id\
     LEFT JOIN item_attributes name ON name.item_id = item_attributes.item_id\
     WHERE notifications.project_id = ?\
     ORDER BY notifications.id, name.id", [req.params.id])
-  const messages = await getMessages(req.params.id)
-  data.rows.forEach((notification) => {
+    
+    data = data.rows.reduce(([list, ids], notification)=>{
+      if (!(ids.includes(notification.id))){
+        ids.push(notification.id); list.push(notification);
+      } 
+      return [list, ids]}, [[],[]])[0]
+
+    const messages = await getMessages({'userId':req.headers['user-id']})
+    data.forEach((notification) => {
     if (notification.message_id){
       notification.comment = messages.find((message) => message.id == notification.message_id)
     }
   })
   
-  data = data.rows.reduce(([list, ids], notification)=>{if (!notification.cell_id){ list.push(notification) } else { if (!(ids.includes(notification.id))){ids.push(notification.id); list.push(notification);}} return [list, ids]}, [[],[]])[0]
-
   res.json({ notifications: data.reverse() });
 })
 
@@ -274,12 +294,27 @@ app.get('/api/users/:id/notifications', async (req, res) => {
     res.status(409).json({ error: "User id does not match" });
   }
 
-  let data = await turso.execute("SELECT * FROM notifications\
+  let data = await turso.execute("SELECT notifications.*, messages.text, messages.comment_cell, messages.comment_value, attributes.name, name.value, users.username FROM notifications\
     LEFT JOIN messages ON messages.id = notifications.message_id\
+    LEFT JOIN users ON users.id = messages.author_id OR users.id = notifications.change_author\
     LEFT JOIN item_attributes ON item_attributes.id = notifications.cell_id\
+    LEFT JOIN attributes ON attributes.id = item_attributes.attribute_id\
+    LEFT JOIN item_attributes name ON name.item_id = item_attributes.item_id\
     INNER JOIN participations ON participations.project_id = notifications.project_id\
     WHERE participations.user_id = ?", [req.params.id]);
-  res.json({ notifications: data.rows });
+  data = data.rows.reduce(([list, ids], notification)=>{
+    if (!(ids.includes(notification.id))){
+      ids.push(notification.id); list.push(notification);
+    } 
+    return [list, ids]}, [[],[]])[0]
+  const messages = await getMessages({'userId': req.params.id})
+  data.forEach((notification) => {
+    if (notification.message_id){
+      notification.comment = messages.find((message) => message.id == notification.message_id)
+    }
+  })
+  
+  res.json({ notifications: data.reverse() });
 })
 
 app.put('/api/users/:id/notifications', async (req, res) => {

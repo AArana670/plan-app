@@ -1,26 +1,27 @@
-import React from "react";
+import React from "react"
 import "../styles/register.css"
-import { LogoHalf } from "../components/logoHalf";
-import axios from "axios";
+import { LogoHalf } from "../components/logoHalf"
+import axios from "axios"
 
 const Register = () => {
 
     async function register(e) {
-        e.preventDefault();
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const repeatPassword = document.getElementById("repeat-password").value;
+        e.preventDefault()
+        const email = document.getElementById("email").value
+        const password = document.getElementById("password").value
+        const repeatPassword = document.getElementById("repeat-password").value
         if (password !== repeatPassword) {
-            alert("Las contraseñas no coinciden");
+            alert("Las contraseñas no coinciden")
             return;
         }
-            const res = await axios.post("http://localhost:8080/api/register", { email, password });
+            const res = await axios.post("http://localhost:8080/api/register", { email, password })
             const data = await res.data;
 
             if (res.status === 200) {
                 console.log(res)
-                sessionStorage.setItem("userId", data.userId);
-                window.location.href = "/projects";
+                sessionStorage.setItem("userId", data.userId)
+            sessionStorage.setItem("username", data.user.username)
+                window.location.href = "/projects"
             }
     }
 
@@ -41,7 +42,7 @@ const Register = () => {
                 </form>
                 <a href="/login">Ya tengo una cuenta</a>
             </div>
-        </div>);
+        </div>)
 }
 
 export default Register

@@ -1,21 +1,22 @@
-import React from "react";
+import React from "react"
 import "../styles/login.css"
-import { LogoHalf } from "../components/logoHalf";
-import axios from "axios";
+import { LogoHalf } from "../components/logoHalf"
+import axios from "axios"
 
 const Login = () => {
     async function login(e) {
-        e.preventDefault();
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+        e.preventDefault()
+        const email = document.getElementById("email").value
+        const password = document.getElementById("password").value
         
-        const res = await axios.post("http://localhost:8080/api/login", { email, password });
+        const res = await axios.post("http://localhost:8080/api/login", { email, password })
         const data = await res.data;
         if (res.status === 200) {
-            sessionStorage.setItem("userId", data.user.id);
-            window.location.href = "/projects";
+            sessionStorage.setItem("userId", data.user.id)
+            sessionStorage.setItem("username", data.user.username)
+            window.location.href = "/projects"
         } else {
-            alert("Error al iniciar sesión");
+            alert("Error al iniciar sesión")
         }
     }
 
@@ -38,8 +39,8 @@ const Login = () => {
                 </form>
                 <a href="/forgot">He olvidado mi contraseña</a>
             </div>
-        </div>);
+        </div>)
 };
 
-export default Login;
+export default Login
 
