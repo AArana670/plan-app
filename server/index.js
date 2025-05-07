@@ -1,8 +1,9 @@
-const express = require('express');
-const app = express();
-const port = 8080;
-const cors = require('cors');
+const express = require('express')
+const app = express()
+const port = 8080
+const cors = require('cors')
 const createClient = require('@libsql/client').createClient
+const serverless = require('serverless-http')
 
 require('dotenv').config()
 
@@ -541,5 +542,7 @@ app.put('/api/projects/:pid/attributes/:aid', async (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:`+port);
+  console.log(`Example app listening at http://localhost:`+port)
 });
+
+module.exports.handler = serverless(app)

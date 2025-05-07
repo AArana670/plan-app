@@ -13,7 +13,7 @@ const InviteDialog = ({id, roles}) => {
         setSelectedRole(roles[0].id)
 
     function copy(e){
-        navigator.clipboard.writeText("localhost:3000/invite/"+id+"/"+selectedRole)
+        navigator.clipboard.writeText("plan-art.vercel.app/invite/"+id+"/"+selectedRole)
     }
 
     return (
@@ -32,7 +32,7 @@ const InviteDialog = ({id, roles}) => {
                 <hr/>
                 <div className="invite-option">
                     <p>Enlace de invitación</p>
-                    <input disabled id="invite-link" value={"localhost:3000/invite/"+id+"/"+selectedRole} />
+                    <input disabled id="invite-link" value={"plan-art.vercel.app/invite/"+id+"/"+selectedRole} />
                     <Dialog.Close className="main-btn" onClick={copy}>Copiar Enlace</Dialog.Close>
                 </div>
             </div>
@@ -45,7 +45,7 @@ const UserList = ({projectId, roles}) => {
 
     function updateUsers(event) {
         const idx = event.target.id.split("-")[1]
-        axios.put("http://localhost:8080/api/projects/"+projectId+"/users", 
+        axios.put(process.env.REACT_APP_SERVER+"/api/projects/"+projectId+"/users", 
             {userId: users[idx].id, roleId: event.target.value}, 
             {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
                 if (res.status == 200){
@@ -59,7 +59,7 @@ const UserList = ({projectId, roles}) => {
     const [users, setUsers] = useState([]);
 
     React.useEffect(() => {
-        axios.get("http://localhost:8080/api/projects/"+projectId+"/users").then((res) => {
+        axios.get(process.env.REACT_APP_SERVER+"/api/projects/"+projectId+"/users").then((res) => {
             setUsers(res.data.users)
         });
     }, []);
@@ -89,7 +89,7 @@ const Users = ({id, params}) => {
     const [roles, setRoles] = useState([]);
 
     React.useEffect(() => {
-        axios.get("http://localhost:8080/api/projects/"+params.id+"/roles").then((res) => {
+        axios.get(process.env.REACT_APP_SERVER+"/api/projects/"+params.id+"/roles").then((res) => {
             setRoles(res.data.roles)
         });
     }, []);

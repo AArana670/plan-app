@@ -15,7 +15,7 @@ const changeProfile = (e) => {
         body['email'] = e.target.email.value
     if (e.target.password.value)
         body['password'] = e.target.password.value
-    axios.put('http://localhost:8080/api/users/'+sessionStorage.userId, body).then((data) => {
+    axios.put(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.userId, body).then((data) => {
         console.log(data)
         window.location.href = "/projects";
     }).catch((error) => {

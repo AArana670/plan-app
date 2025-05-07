@@ -19,7 +19,7 @@ function addEvent(e, date) {
     const start = form[2].value+':'+form[3].value
     const end = form[4].value+':'+form[5].value
     const description = form[6].value
-    axios.post('http://localhost:8080/api/projects/'+ sessionStorage.getItem('projectId') +'/events', 
+    axios.post(process.env.REACT_APP_SERVER+'/api/projects/'+ sessionStorage.getItem('projectId') +'/events', 
     {name: title, tag: tag, date: date, start: start, end: end, description: description},
     {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
         if (res.status == 200){
@@ -32,7 +32,7 @@ function addEvent(e, date) {
 const NewEventDialog = ({selectedDate, visible, setVisible}) => {
     const [tags, setTags] = useState([])
     
-    useEffect(()=>{axios.get('http://localhost:8080/api/projects/'+sessionStorage.getItem('projectId')+'/attributes', 
+    useEffect(()=>{axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+sessionStorage.getItem('projectId')+'/attributes', 
         {headers: {'user-id': sessionStorage.getItem('userId')}}).then((response) => {
         setTags(response.data.attributes)
     })}, [])
@@ -114,7 +114,7 @@ const Calendar = ({params}) => {
 
     const [events, setEvents] = React.useState([])
     React.useEffect(() => {
-        axios.get('http://localhost:8080/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+        axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+params.id+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
         setEvents(res.data.events)
         })
     }, []);

@@ -13,7 +13,7 @@ function Chat({id}) {
     e.preventDefault();
     const message = e.target[0].value;
     e.target[0].value = "";
-    axios.post('http://localhost:8080/api/projects/'+id+'/messages', {text: message}, {headers: {"user-id": sessionStorage.getItem('userId')}})
+    axios.post(process.env.REACT_APP_SERVER+'/api/projects/'+id+'/messages', {text: message}, {headers: {"user-id": sessionStorage.getItem('userId')}})
       .then((res) => {
         if (res.status != 200) return;
         setMessages([{type: "message", userId: sessionStorage.getItem('userId'), sender: sessionStorage.getItem('username'), text: message}, ...messages]);
@@ -23,7 +23,7 @@ function Chat({id}) {
   const [messages, setMessages] = useState([])
   
   useEffect(() => {
-    axios.get('http://localhost:8080/api/projects/'+id+'/messages', {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
+    axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+id+'/messages', {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
       setMessages(res.data.messages);
     })
   }, [])
@@ -124,7 +124,7 @@ function updateLastNotification(id, messages, setLastNotification){
     sessionStorage.setItem('lastNotification', 0)
   }
   if (id && sessionStorage.getItem('lastNotification') < messages[0].id){
-    axios.put('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', 
+    axios.put(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/notifications', 
     {[id]: messages[0].id}, {headers: {"user-id": sessionStorage.getItem('userId')}}).then((res) => {
       if (res.status == 200) {
         setLastNotification(messages[0].id);
@@ -213,7 +213,7 @@ async function getProjectName(id) {
   if (id){
     if (!sessionStorage.getItem('projectId') || sessionStorage.getItem('projectId')!= id){
       sessionStorage.setItem('projectId', id);
-      await axios.get('http://localhost:8080/api/projects/'+id, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+      await axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+id, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
         sessionStorage.setItem('projectName', res.data.project.name);
       });
     }
@@ -239,7 +239,7 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
 
   useEffect(() => {
     if (sessionStorage.getItem('projectId')){
-      axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+      axios.get(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
         setAdmin(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).name === 'admin')
         setLastNotification(res.data.roles.find((role) => role.project_id == sessionStorage.getItem('projectId')).last_notification)
       })
@@ -255,11 +255,11 @@ const ProjectHeader = ({id, current, isAdmin, params}) => {
 
   useEffect(() => {
     if (id){
-      axios.get('http://localhost:8080/api/projects/'+id+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+      axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+id+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
         setNotifications(res.data.notifications)
       })
     } else {
-      axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+      axios.get(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/notifications', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
         setNotifications(res.data.notifications)
       })
     }

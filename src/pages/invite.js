@@ -5,7 +5,7 @@ import '../styles/invite.css'
 const Invite = ({params}) => {
   
   async function join(e){
-    await axios.put('http://localhost:8080/api/projects/'+params.pId,
+    await axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+params.pId,
       {projectId: params.pId, roleId: params.rId}, {headers: {'user-id': sessionStorage.getItem('userId')}})
       window.location.href = '/projects'
     }
@@ -16,7 +16,7 @@ const Invite = ({params}) => {
 
   const [projectName, setProjectName] = useState(params.pId)
   useEffect(() => {
-    axios.get('http://localhost:8080/api/projects/'+params.pId, 
+    axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+params.pId, 
       {headers: {'user-id': sessionStorage.getItem('userId')}})
       .then((res) => {
         setProjectName(res.data.project.name)

@@ -12,7 +12,7 @@ const RoleDialog = ({roles, setRoles, id}) => {
         const newRole = document.getElementById("new-role").value
         if (newRole === "")
             return
-        axios.post("http://localhost:8080/api/projects/"+id+"/roles", {
+        axios.post(process.env.REACT_APP_SERVER+"/api/projects/"+id+"/roles", {
             name: newRole
         }).then((res) => {
             const roleId = res.data.roleId
@@ -40,7 +40,7 @@ function updateAccess(roles, setRoles, r, j, projectId) {
     const newLevel = (roles[r].accesses[j].level+1)%3
     const body = {}
     body[roles[r].accesses[j].id] = newLevel
-    axios.put("http://localhost:8080/api/projects/"+projectId+"/roles/"+roles[r].id, {
+    axios.put(process.env.REACT_APP_SERVER+"/api/projects/"+projectId+"/roles/"+roles[r].id, {
         permissions: body
     }).then((res) => {
         if (res.status == 200){
@@ -107,11 +107,11 @@ const RolesList = ({roles, setRoles, projectId}) => {
 const Roles = ({params}) => {
     const [roles, setRoles] = useState({});
     useEffect(() => {
-        axios.get("http://localhost:8080/api/projects/"+params.id+"/roles", {headers: {"user-id":sessionStorage.userId}}).then(async (res) => {
+        axios.get(process.env.REACT_APP_SERVER+"/api/projects/"+params.id+"/roles", {headers: {"user-id":sessionStorage.userId}}).then(async (res) => {
             let firstRoles = {}
             for (let i in res.data.roles){
                 const role = res.data.roles[i]
-                firstRoles[role.name] = axios.get("http://localhost:8080/api/projects/"+params.id+"/roles/"+role.id, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+                firstRoles[role.name] = axios.get(process.env.REACT_APP_SERVER+"/api/projects/"+params.id+"/roles/"+role.id, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
                     const accesses = {}
                     for (let i in res.data.permissions) {
                         const access = res.data.permissions[i]

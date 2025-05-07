@@ -57,7 +57,7 @@ const UploadDialog = ({grid, setGrid}) => {
 const CommentDialog = ({selectedCell, visible, setVisible, columns, rows}) => {
     const postComment = (e) => {
         const text = e.target.form[0].value
-        axios.post('http://localhost:8080/api/projects/'+ sessionStorage.getItem('projectId') +'/messages', 
+        axios.post(process.env.REACT_APP_SERVER+'/api/projects/'+ sessionStorage.getItem('projectId') +'/messages', 
         {text: text, comment: {column: selectedCell.column, row: selectedCell.row, value: selectedCell.value}},
         {headers: {'user-id': sessionStorage.getItem('userId')}})
     }
@@ -107,7 +107,7 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
             if (idx == 'newRow'){
                 const newRow = {}
                 newRow[fieldName] = change.newCell.text
-                await axios.post('http://localhost:8080/api/projects/'+pId+'/items', 
+                await axios.post(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/items', 
                     {attributes: newRow, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
                         if (res.status==200){
                             newRow['id'] = res.data.id
@@ -115,7 +115,7 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
                         }
                     }).catch((e)=>{})
             }else {
-                axios.put('http://localhost:8080/api/projects/'+pId+'/items/'+idx, 
+                axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/items/'+idx, 
                     {attributes: {[fieldName]: change.newCell.text}}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
                         if (res.status==200){
                             newRows.map((item)=>{if (item.id === idx) item[fieldName] = change.newCell.text; return item})
@@ -132,7 +132,7 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
         changes.forEach((change) => {
             const fieldName = change.columnId;
             if (fieldName == ''){ //New column
-                promises.push(axios.post('http://localhost:8080/api/projects/'+pId+'/attributes', 
+                promises.push(axios.post(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/attributes', 
                     {name: change.newCell.text, spreadsheet: group+''}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res)=>{
                         if (res.status == 200){
                             newColumns.push({id: res.data.attributeId, name: change.newCell.text, project_id: pId, spreadsheet: group+''})
@@ -143,7 +143,7 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
             else if (change.newCell.text in columns){ //Cannot set repeated names
                 return
             } else {
-                promises.push(axios.put('http://localhost:8080/api/projects/'+pId+'/attributes', 
+                promises.push(axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/attributes', 
                     {name: change.newCell.text}).then(((res)=>{
                         if (res.status == 200){
                             newColumns[newColumns.find((col)=>col.text==fieldName)].name=change.newCell.text
@@ -289,7 +289,7 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
 const Home = ({params}) => {
     const [isAdmin, setAdmin] = useState(false)
     useEffect(() => {
-        axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        axios.get(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/roles', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
             setAdmin(res.data.roles.find((role) => role.project_id == params.id).name === 'admin')
         })
     }, [])
@@ -304,13 +304,13 @@ const Home = ({params}) => {
     const [budget, setBudget] = useState([])
 
     useEffect(() => {
-        axios.get('http://localhost:8080/api/projects/'+params.id+'/attributes', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+params.id+'/attributes', {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
             if (res.data.attributes.length > 0){
                 setWorkColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='1'))
                 setBudgetColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='2'))
                 setOtherColumns(res.data.attributes.filter((attr)=>attr.spreadsheet==='3'))
                 const ids = res.data.attributes.map((attr) => attr.id)
-                axios.get('http://localhost:8080/api/projects/'+params.id+'/items', {headers: {'user-id': sessionStorage.getItem('userId'), 'attributes': ids.join(',')}})
+                axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+params.id+'/items', {headers: {'user-id': sessionStorage.getItem('userId'), 'attributes': ids.join(',')}})
                     .then((resItems) => {
                         setWorks(resItems.data.items.filter((item)=>item.spreadsheet==='1'))
                         setBudget(resItems.data.items.filter((item)=>item.spreadsheet==='2'))

@@ -166,7 +166,7 @@ const Projects = () => {
   const [projects, setProjects] = React.useState([]);
   
   React.useEffect(() => {
-    axios.get('http://localhost:8080/api/projects', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
+    axios.get(process.env.REACT_APP_SERVER+'/api/projects', {headers: {"user-id":sessionStorage.userId}}).then((data) => {
       setProjects(data.data.projects);
     })
   }, []);
@@ -175,7 +175,7 @@ const Projects = () => {
 
   const [events, setEvents] = React.useState([]);
   React.useEffect(() => {
-    axios.get('http://localhost:8080/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+    axios.get(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
       setEvents(res.data.events);
     })
   }, []);
@@ -193,7 +193,7 @@ const Projects = () => {
   }
 
   function deleteProject(project) {
-    axios.delete('http://localhost:8080/api/projects/'+project.id, {headers: {"user-id":sessionStorage.userId}})
+    axios.delete(process.env.REACT_APP_SERVER+'/api/projects/'+project.id, {headers: {"user-id":sessionStorage.userId}})
         .then((res)=> {
           if (res.status == 200) {
             setProjects(projects.filter((p) => p !== project));
@@ -205,7 +205,7 @@ const Projects = () => {
   const [selectedProject, setSelectedProject] = React.useState(null);
 
   async function renameProject(project, newName) {
-    const res = await axios.put('http://localhost:8080/api/projects/'+project.id, {name: newName}, {headers: {"user-id":sessionStorage.userId}});
+    const res = await axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+project.id, {name: newName}, {headers: {"user-id":sessionStorage.userId}});
     console.log("aver")
     console.log(res);
     if (res.status == 200) {
@@ -215,7 +215,7 @@ const Projects = () => {
   const [renameVisible, setRenameVisible] = React.useState(false);
 
   function archiveProject(project, archived) {
-    axios.put('http://localhost:8080/api/projects/'+project.id, {archived: archived}, {headers: {"user-id":sessionStorage.userId}})
+    axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+project.id, {archived: archived}, {headers: {"user-id":sessionStorage.userId}})
             .then((res)=> {
               if (res.status == 200) {
                 setProjects(projects.map((p) => p === project ? {name: p.name, archived: archived} : p));
@@ -225,7 +225,7 @@ const Projects = () => {
 
 
   function addProject(name, description) {
-    axios.post('http://localhost:8080/api/projects', {name: name, archived: false, description: description}, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+    axios.post(process.env.REACT_APP_SERVER+'/api/projects', {name: name, archived: false, description: description}, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
       setProjects([{id:res.data.project.id, name: name, archived: false}, ...projects]);
     })
     return false;

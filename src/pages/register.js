@@ -14,7 +14,7 @@ const Register = () => {
             alert("Las contraseñas no coinciden")
             return;
         }
-            const res = await axios.post("http://localhost:8080/api/register", { email, password })
+            const res = await axios.post(process.env.REACT_APP_SERVER+"/api/register", { email, password })
             const data = await res.data;
 
             if (res.status === 200) {

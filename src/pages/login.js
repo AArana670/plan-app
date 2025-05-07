@@ -9,7 +9,7 @@ const Login = () => {
         const email = document.getElementById("email").value
         const password = document.getElementById("password").value
         
-        const res = await axios.post("http://localhost:8080/api/login", { email, password })
+        const res = await axios.post(process.env.REACT_APP_SERVER+"/api/login", { email, password })
         const data = await res.data;
         if (res.status === 200) {
             sessionStorage.setItem("userId", data.user.id)
