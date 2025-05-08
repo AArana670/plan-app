@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import ProjectHeader from "../components/mainHeader"
 import "../styles/profile.css"
 import axios from 'axios'
@@ -39,13 +39,23 @@ const Profile = ({params}) => {
     const {username, image, email} = getUserInfo();
     const imgHash = new Identicon(sessionStorage.getItem('userId').toString().padStart(15, '0')).toString();
 
+    const [picture, setPicture] = useState(0)
+    window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(username))
+            .then((hashBuffer) => {
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+    
+              // convert bytes to hex string                  
+              const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+              setPicture(new Identicon(hashHex.padStart(15, ' '), {'background': [hashArray[0], hashArray[1], hashArray[2], 150]}))
+            })
+
     return (
         <div className="profile-main">
             <ProjectHeader id={params.id} current="profile" />
             <main>
                 <form className="profile-form" autoComplete="off" onSubmit={changeProfile}>
                     <div id="form-head">
-                        <img className="profile-image" src={"data:image/png;base64," + imgHash} alt="user" />
+                        <img className="profile-image" src={"data:image/png;base64," + picture} alt="user" />
                         <div id="username-field">
                             <label for="username">Nombre de usuario</label>
                             <input id="username" name="username" autoComplete="off" className="profile-input" type="text" placeholder="Nombre de usuario" />
