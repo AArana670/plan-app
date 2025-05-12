@@ -388,6 +388,18 @@ app.get('/api/users/:id/roles/', async (req, res) => {
 })
 
 //region User Accounts
+async function sha256(message) {
+  //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+  const msgBuffer = new TextEncoder().encode(message);                    
+
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+       
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
 app.post('/api/login', async (req, res) => {
   
   if (!req.body.email || !req.body.password) {
@@ -399,7 +411,9 @@ app.post('/api/login', async (req, res) => {
     return;
   }
 
-  data = await turso.execute("SELECT * FROM users WHERE email = ? AND password = ?", [req.body.email, req.body.password]);
+  const hashPassword = await sha256(req.body.password)
+
+  data = await turso.execute("SELECT * FROM users WHERE email = ? AND password = ?", [req.body.email, hashPassword]);
   if (data.rows.length == 0)
     res.status(401).json({ error: "Invalid credentials" });
   else
@@ -422,8 +436,12 @@ app.post('/api/register', async (req, res) => {
     return;
   }
 
-  newUser = await turso.execute("INSERT INTO users (email, password) VALUES (?, ?)", [req.body.email, req.body.password]);
-  res.json({ userId: newUser.lastInsertRowid.toString() });
+
+  const hashPassword = await sha256(req.body.password)
+  const username = req.body.email.split('@')[0]
+
+  newUser = await turso.execute("INSERT INTO users (email, username, password) VALUES (?, ?, ?)", [req.body.email, username, hashPassword]);
+  res.json({ userId: newUser.lastInsertRowid.toString(), username: username });
 });
 
 app.put('/api/users/:id', async (req, res) => {
@@ -434,7 +452,8 @@ app.put('/api/users/:id', async (req, res) => {
   }
 
   if (req.body.password)
-    await turso.execute("UPDATE users SET password = ? WHERE id = ?", [req.body.password, req.params.id]);
+    hashPassword = await sha256(req.body.password)
+    await turso.execute("UPDATE users SET password = ? WHERE id = ?", [hashPassword, req.params.id]);
   if (req.body.email)
     await turso.execute("UPDATE users SET email = ? WHERE id = ?", [req.body.email, req.params.id]);
   res.status(200)

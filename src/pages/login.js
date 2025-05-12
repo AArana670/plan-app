@@ -37,7 +37,7 @@ const Login = () => {
                         </a>
                     </div>
                 </form>
-                <a href="/forgot">He olvidado mi contraseña</a>
+                {/*<a href="/forgot">He olvidado mi contraseña</a>*/}
             </div>
         </div>)
 };

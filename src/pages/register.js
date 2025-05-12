@@ -20,7 +20,7 @@ const Register = () => {
             if (res.status === 200) {
                 console.log(res)
                 sessionStorage.setItem("userId", data.userId)
-            sessionStorage.setItem("username", data.user.username)
+                sessionStorage.setItem("username", data.username)
                 window.location.href = "/projects"
             }
     }

@@ -333,7 +333,7 @@ const Home = ({params}) => {
                 <Tabs values={tabValues} names={tabNames} selected={selectedTab} setSelected={setSelectedTab}/>
                 <header>
                     <h2>{tabNames[current]}</h2>
-                    <Dialog.Root>
+                    {/*<Dialog.Root>
                         <Dialog.Trigger className="dialog-btn">
                         <IconButton id="scan-works" src="/icons/document.svg"/>
                         </Dialog.Trigger>
@@ -343,7 +343,7 @@ const Home = ({params}) => {
                                 <UploadDialog id={params.id}/>
                             </Dialog.Popup>
                         </Dialog.Portal>
-                    </Dialog.Root>
+                    </Dialog.Root>*/}
                 </header>
                 <div className="spreadsheet">
                     <Spreadsheet group={tabValues.indexOf(selectedTab)+1} columns={selectedTab=="works" ? workColumns : selectedTab=="budget" ? budgetColumns : otherColumns} setColumns={selectedTab=="works" ? setWorkColumns : selectedTab=="budget" ? setBudgetColumns : setOtherColumns} rows={selectedTab=="works" ? works : selectedTab=="budget" ? budget : others} setRows={selectedTab=="works" ? setWorks : selectedTab=="budget" ? setBudget : setOthers} pId={params.id} isAdmin={isAdmin}/>
