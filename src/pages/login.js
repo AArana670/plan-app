@@ -3,20 +3,36 @@ import "../styles/login.css"
 import { LogoHalf } from "../components/logoHalf"
 import axios from "axios"
 
+const ErrorMessage = ({message}) => {
+    if (!message) return null
+    return (
+        <div className="error-message">
+            {message}
+        </div>
+    )
+}
+
 const Login = () => {
+
+    const [errorMsg, setErrorMsg] = React.useState(null)
+
     async function login(e) {
         e.preventDefault()
         const email = document.getElementById("email").value
         const password = document.getElementById("password").value
-        
-        const res = await axios.post(process.env.REACT_APP_SERVER+"/api/login", { email, password })
-        const data = await res.data;
-        if (res.status === 200) {
-            sessionStorage.setItem("userId", data.user.id)
-            sessionStorage.setItem("username", data.user.username)
-            window.location.href = "/projects"
-        } else {
-            alert("Error al iniciar sesión")
+
+        try{
+            const res = await axios.post(process.env.REACT_APP_SERVER+"/api/login", { email, password })
+            const data = await res.data;
+            if (res.status === 200) {
+                sessionStorage.setItem("userId", data.user.id)
+                sessionStorage.setItem("username", data.user.username)
+                window.location.href = "/projects"
+            } else {
+                alert("Error al iniciar sesión")
+            }
+        } catch (error) {
+            setErrorMsg(error.response.data.error)
         }
     }
 
@@ -25,6 +41,7 @@ const Login = () => {
             <LogoHalf/>
             <div className="form-half">
                 <h1>Únete ahora</h1>
+                <ErrorMessage message={errorMsg}/>
                 <form className="login" onSubmit={login}>
                     <label for="email">Correo electrónico</label>
                     <input id="email" name="email" type="text" placeholder="Correo electrónico" />

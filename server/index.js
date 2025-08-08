@@ -402,12 +402,17 @@ async function sha256(message) {
 
 app.post('/api/login', async (req, res) => {
   
-  if (!req.body.email || !req.body.password) {
-    res.status(400).json({ error: "Missing email or password" });
+  if (!req.body.email) {
+    res.status(400).json({ error: "Introduce un correo electrónico" });
     return;
   }
+  if (!req.body.password) {
+    res.status(400).json({ error: "Introduce una contraseña" });
+    return;
+  }
+
   if (!req.body.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
-    res.status(400).json({ error: "Invalid email" });
+    res.status(400).json({ error: "Correo electrónico no válido" });
     return;
   }
 
@@ -415,24 +420,29 @@ app.post('/api/login', async (req, res) => {
 
   data = await turso.execute("SELECT * FROM users WHERE email = ? AND password = ?", [req.body.email, hashPassword]);
   if (data.rows.length == 0)
-    res.status(401).json({ error: "Invalid credentials" });
+    res.status(401).json({ error: "Correo electrónico o contraseña incorrectos" });
   else
     res.json({ user: data.rows[0] });
 })
 
 app.post('/api/register', async (req, res) => {
-  if (!req.body.email || !req.body.password) {
-    res.status(400).json({ error: "Missing email or password" });
+  if (!req.body.email) {
+    res.status(400).json({ error: "Introduce un correo electrónico" });
     return;
   }
+  if (!req.body.password) {
+    res.status(400).json({ error: "Introduce una contraseña" });
+    return;
+  }
+
   if (!req.body.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
-    res.status(400).json({ error: "Invalid email" });
+    res.status(400).json({ error: "Correo electrónico no válido" });
     return;
   }
 
   data = await turso.execute("SELECT * FROM users WHERE email = ?", [req.body.email]);
   if (data.rows.length > 0) {
-    res.status(409).json({ error: "Email already in use" });
+    res.status(409).json({ error: "Correo electrónico en uso" });
     return;
   }
 
