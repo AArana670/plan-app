@@ -24,10 +24,15 @@ const Welcome = () => {
             <main className="welcome-main">
                 <article id="welcome">
                     <h1>
-                        Bienvenido
+                        Bienvenida
                     </h1>
                     <p>
-                        Soy Aitor Arana, y tengo una pregunta que hacerte: ¿acaso un hombre no tiene derecho al sudor de su propia frente? No, dice el hombre de Washington. Pertenece a los pobres. No, dice el hombre del Vaticano. Pertenece a Dios. No, dice el hombre de Moscú. Pertenece a todos. Yo rechacé esas respuestas. En vez de eso, elegí algo distinto. Elegí lo imposible. Elegí... Plan A. Una herramienta donde el artista no tenía que temer al censor. Donde el científico no estaba limitado por la nimia moral. Donde los grandes no estaban constreñidos por los pequeños. Y con el sudor de tu frente, ¡Plan A también puede ser tu herramienta! 
+                        ¡Bienvenido a Plan A!
+                    </p>
+                    <p>
+                        La plataforma diseñada para revolucionar la gestión de exposiciones y ferias de arte. Optimiza
+                        tu trabajo, conecta con otros profesionales y lleva tus proyectos culturales al siguiente nivel.
+                        Porque en el arte, improvisar ya no es una opción.
                     </p>
                 </article>
                 <article id="about">
@@ -35,7 +40,10 @@ const Welcome = () => {
                         Sobre nosotros
                     </h1>
                     <p>
-                        Surgió una idea, y Riesco la conoce. Llamada la Iniciativa Plan A. La idea era buscar y reunir a un grupo de personas excepcionales, y tratar de convertirlas en algo más. Ver si podían unirse cuando necesitáramos que libraran las batallas que no podríamos ganar.
+                        Plan A es una herramienta digital creada por y para profesionales del arte. Nuestro objetivo es
+                        transformar la organización de exposiciones y ferias, ofreciendo una solución inteligente,
+                        intuitiva y colaborativa. Impulsamos la profesionalización del sector cultural a través de la
+                        innovación, la sostenibilidad y la formación.
                     </p>
                 </article>
                 <article id="services">
@@ -43,7 +51,30 @@ const Welcome = () => {
                         Servicios
                     </h1>
                     <p>
-                        É um grande orgulho nacional o queijo Mineiro, em especial o Queijo canastra, e vem sendo premiado frequente em concursos nacionais (como o prêmio queijo Brasil) e internacionais (como o “Mondial du Fromage”, na França). Queijeiros como a Solange da fazenda capão grande, Alan do Queijo do Dinho e Vinicius produtor do queijo canastra faz o bem orgânico fazem parte do time de pequenos produtores responsáveis por essas vitórias gastronômicas do estado de Minas e são parceiras do Mineiro do Queijo.  Outros produtos como alguns doces e cachaças que trabalhamos também são produtos premiados.
+                        Plan A es un software especializado para la planificación de exposiciones y ferias de arte.
+                    </p>
+                    <p>
+                        Ofrecemos:
+                    </p>
+                    <ul>
+                        <li>
+                            Gestión integral de proyectos culturales.
+                        </li>
+                        <li>
+                            Automatización inteligente con IA.
+                        </li>
+                        <li>
+                            Espacios de trabajo colaborativos y personalizables.
+                        </li>
+                        <li>
+                            Base de datos de proveedores y materiales reutilizables.
+                        </li>
+                        <li>
+                            Asistencia técnica y consultoría especializada.
+                        </li>
+                    </ul>
+                    <p>
+                        Todo en una única plataforma, accesible desde cualquier dispositivo.
                     </p>
                 </article>
                 <article id="contact">
@@ -53,7 +84,7 @@ const Welcome = () => {
                     <p>
                         <a href="mailto:pa.planapp@gmail.com">pa.planapp@gmail.com</a>
                     </p>
-                    <div className="socials">
+                    {/*<div className="socials">
                         <a href="https://www.youtube.com/@VaatiVidya" target="_blank">
                             <img src="icons/instagram_dark.svg" alt="instagram" className="social-icon" />
                         </a>
@@ -63,7 +94,7 @@ const Welcome = () => {
                         <a href="https://www.youtube.com/@VaatiVidya" target="_blank">
                             <img src="icons/tiktok.svg" alt="tiktok" className="social-icon" />
                         </a>
-                    </div>
+                    </div>*/}
                 </article>
             </main>
         </div>
