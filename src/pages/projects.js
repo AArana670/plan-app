@@ -226,7 +226,7 @@ const Projects = () => {
 
   function addProject(name, description) {
     axios.post(process.env.REACT_APP_SERVER+'/api/projects', {name: name, archived: false, description: description}, {headers: {"user-id":sessionStorage.userId}}).then((res) => {
-      setProjects([{id:res.data.project.id, name: name, archived: false}, ...projects]);
+      setProjects([{id:res.data.project, name: name, archived: false}, ...projects]);
     })
     return false;
   }

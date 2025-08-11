@@ -347,8 +347,9 @@ app.get('/api/projects/:id/roles', async (req, res) => {
 
 app.post('/api/projects/:id/roles', async (req, res) => {
   //TODO: Check if name is already taken
-  role = await turso.execute("INSERT INTO roles (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id])
-  attributes = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id])
+  rolePromise = turso.execute("INSERT INTO roles (name, project_id) VALUES (?, ?)", [req.body.name, req.params.id])
+  attributesPromise = turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id])
+  const [role, attributes] = await Promise.all([rolePromise, attributesPromise])
   for (let i = 0; i < attributes.rows.length; i++) {
     turso.execute("INSERT INTO role_attributes (role_id, attribute_id, level) VALUES (?, ?, 0)", [role.lastInsertRowid, attributes.rows[i].id])
   }
@@ -357,6 +358,10 @@ app.post('/api/projects/:id/roles', async (req, res) => {
 })
 
 app.get('/api/projects/:pid/roles/:rid', async (req, res) => {
+  /*if (req.params.rid == "admin"){
+    res.json({ permissions: [] })
+    return
+  }*/
   data = await turso.execute("SELECT * FROM role_attributes \
     INNER JOIN attributes ON attributes.id = role_attributes.attribute_id \
     WHERE project_id = ? AND role_id = ? ORDER BY role_attributes.attribute_id", [req.params.pid, req.params.rid])
@@ -546,11 +551,11 @@ app.put('/api/projects/:pId/items/:iId', async (req, res) => {
 })
 
 app.get('/api/projects/:id/attributes', async (req, res) => {
+  let data;
   if (await isAdmin(req.headers["user-id"], req.params.id)) {
     data = await turso.execute("SELECT * FROM attributes WHERE project_id = ?", [req.params.id])
-    res.json({ attributes: data.rows })
   } else {
-    const data = await turso.execute("SELECT * FROM attributes\
+    data = await turso.execute("SELECT * FROM attributes\
       WHERE attributes.project_id = ? AND attributes.id IN \
       (SELECT attribute_id FROM role_attributes\
       INNER JOIN participations ON participations.role_id = role_attributes.role_id\
