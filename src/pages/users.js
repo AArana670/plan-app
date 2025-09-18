@@ -21,13 +21,13 @@ const InviteDialog = ({id, roles}) => {
             <h3>Invitar a {id}</h3>
             <div className="invite-options">
                 <div className="invite-option">
-                    <input placeholder="correo electrónico" />
+                    {/*<input placeholder="correo electrónico" />*/}
                     <select className="role-select" id="invite-role" onChange={(e)=>setSelectedRole(e.target.value)}>
                         {roles.map((role) => {
                             return <option value={role.id}>{role.name}</option>
                         })}
                     </select>
-                    <Dialog.Close className="main-btn">Invitar</Dialog.Close>
+                    {/*<Dialog.Close className="main-btn">Invitar</Dialog.Close>*/}
                 </div>
                 <hr/>
                 <div className="invite-option">

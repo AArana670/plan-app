@@ -70,7 +70,7 @@ app.get('/api/projects', async (req, res) => {
 
 app.get('/api/projects/:id', async (req, res) => {
   try{
-    data = await turso.execute("SELECT * FROM projects INNER JOIN participations ON participations.project_id = projects.id WHERE user_id = ? AND project_id = ?", [req.headers["user-id"], req.params.id])
+    data = await turso.execute("SELECT * FROM projects WHERE id = ?", [req.params.id])
     res.json({ project: data.rows[0] })
     return
   }catch (e) {
@@ -102,25 +102,27 @@ app.put('/api/projects', async (req, res) => {
   try{
     const participations = await turso.execute('SELECT * FROM participations WHERE project_id = ? AND user_id = ?', [req.body.projectId, req.headers['user-id']])
     if (participations.rows.length == 0) {
-      const data = await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], req.body.projectId, req.body.roleId])
+      data = await turso.execute("INSERT INTO participations (user_id, project_id, role_id) VALUES (?, ?, ?)", [req.headers["user-id"], req.body.projectId, req.body.roleId])
     }
   }catch (e) {
     console.log(e)
     res.status(500)
     return
   }
-  res.json({ project: data.lastInsertRowid.toString()})
+  if (data.lastInsertRowid)
+    res.json({ project: data.lastInsertRowid.toString()})
 })
 
 app.put('/api/projects/:id', async (req, res) => {
   let newValue
+  console.log("archived" in req.body)
   try{
-    if (req.body.name){
+    if ("name" in req.body){
       newValue = req.body.name
       await turso.execute("UPDATE projects SET name = ? WHERE id = ?", [req.body.name, req.params.id])
     }
-    if (req.body.archived){
-      newValue = req.body.archived
+    if ("archived" in req.body){
+      newValue = req.body.archived? 1 : 0
       await turso.execute("UPDATE projects SET archived = ? WHERE id = ?", [req.body.archived, req.params.id])
     }
   }catch (e) {
@@ -154,10 +156,11 @@ app.delete('/api/projects/:id', async (req, res) => {
 
 //region Events
 app.get('/api/users/:id/events', async (req, res) => {
-  let data = await turso.execute("SELECT * FROM events\
-      INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
-      INNER JOIN participations on participations.role_id = role_attributes.role_id\
-      WHERE user_id = ? AND role_attributes.level >= ?", [req.params.id, LEVEL_VIEW])
+  data = await turso.execute("SELECT * FROM events\
+        INNER JOIN attributes on attributes.id = events.tag_id\
+        INNER JOIN participations on participations.project_id = attributes.project_id\
+        INNER JOIN roles on roles.id = participations.role_id\
+        WHERE user_id = ? AND roles.name='admin'", [req.params.id])
   data = data.rows.map((event) => {event.title = event.name 
     event.date = event.start_time.split(' ')[0] 
     event.end = event.end_time.split(' ')[0] 
@@ -172,7 +175,13 @@ app.get('/api/projects/:id/events', async (req, res) => {
     res.status(401).json({ error: "Missing userId" })
     return
   }
-  let data = await turso.execute("SELECT * FROM events\
+  if (isAdmin(req.headers["user-id"], req.params.id))
+    data = await turso.execute("SELECT * FROM events\
+      INNER JOIN attributes on attributes.id = events.tag_id\
+      INNER JOIN participations on attributes.project_id = participations.project_id\
+      WHERE participations.project_id = ?", [req.params.id])
+  else
+    data = await turso.execute("SELECT * FROM events\
       INNER JOIN role_attributes on role_attributes.attribute_id = events.tag_id\
       INNER JOIN participations on role_attributes.role_id = participations.role_id\
       WHERE participations.project_id = ? and user_id = ? AND role_attributes.level >= ?", [req.params.id, req.headers["user-id"], LEVEL_VIEW])
@@ -476,11 +485,14 @@ app.put('/api/users/:id', async (req, res) => {
     return
   }
 
-  if (req.body.password)
+  if (req.body.password){
     hashPassword = await sha256(req.body.password)
     await turso.execute("UPDATE users SET password = ? WHERE id = ?", [hashPassword, req.params.id])
+  }
   if (req.body.email)
     await turso.execute("UPDATE users SET email = ? WHERE id = ?", [req.body.email, req.params.id])
+  if (req.body.username)
+    await turso.execute("UPDATE users SET username = ? WHERE id = ?", [req.body.username, req.params.id])
   res.status(200)
 })
 
@@ -496,6 +508,7 @@ app.get('/api/projects/:id/items', async (req, res) => {
   const data = await turso.execute("SELECT * FROM items\
     INNER JOIN item_attributes ON item_attributes.item_id = items.id\
     WHERE items.project_id = ? AND attribute_id IN (" + attributes.join(", ") + ")", [req.params.id])
+  
   let items = data.rows.reduce((items, item) => {if (!items[item.id]) items[item.id] = {}; if (!items[item.id].spreadsheet) items[item.id].spreadsheet=item.spreadsheet; items[item.id][item.attribute_id] = item.value; return items}, {})
   items = Object.entries(items).map(([item, attrs]) => {
     newAttrs = {...attrs}
@@ -507,8 +520,7 @@ app.get('/api/projects/:id/items', async (req, res) => {
 
 app.post('/api/projects/:id/items', async (req, res) => {
   attributes = req.body.attributes
-  allowedAttributes = Object.keys(attributes).filter(async (attr) => await hasPermission(req.headers['user-id'], req.params.id, attr, LEVEL_EDIT)==true)
-  promises = Object.keys(attributes).map(async ([attr, value]) => [attr, value, await hasPermission(req.headers['user-id'], req.params.id, attr, LEVEL_EDIT)])
+  promises = Object.keys(attributes).map(async (attr) => [attr, attributes[attr], await hasPermission(req.headers['user-id'], req.params.id, attr, LEVEL_EDIT)])
   allowedAttributes = (await Promise.all(promises)).filter(([attr, value, permission]) => permission)
 
   if (allowedAttributes.length == 0){
@@ -517,7 +529,7 @@ app.post('/api/projects/:id/items', async (req, res) => {
   }
   data = await turso.execute("INSERT INTO items (project_id, spreadsheet) VALUES (?, ?)", [req.params.id, req.body.spreadsheet])
   for (const [attr, value, permission] of allowedAttributes) {
-    if (permission)
+    if (!permission)
       continue
     turso.execute("INSERT INTO item_attributes (item_id, attribute_id, value) VALUES (?, ?, ?)", [data.lastInsertRowid, attr, value])
   }

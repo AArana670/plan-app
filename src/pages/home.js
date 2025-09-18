@@ -143,10 +143,10 @@ const Spreadsheet = ({group, columns, setColumns, rows, setRows, pId, isAdmin}) 
             else if (change.newCell.text in columns){ //Cannot set repeated names
                 return
             } else {
-                promises.push(axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/attributes', 
-                    {name: change.newCell.text}).then(((res)=>{
+                promises.push(axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+pId+'/attributes/'+change.columnId, 
+                    {name: change.newCell.text}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then(((res)=>{
                         if (res.status == 200){
-                            newColumns[newColumns.find((col)=>col.text==fieldName)].name=change.newCell.text
+                            newColumns[newColumns.indexOf(newColumns.find((col)=>col.id==fieldName))].name=change.newCell.text
                         }
                     })))
             }

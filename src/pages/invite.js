@@ -5,9 +5,13 @@ import '../styles/invite.css'
 const Invite = ({params}) => {
   
   async function join(e){
-    await axios.put(process.env.REACT_APP_SERVER+'/api/projects/'+params.pId,
-      {projectId: params.pId, roleId: params.rId}, {headers: {'user-id': sessionStorage.getItem('userId')}})
-      window.location.href = '/projects'
+    await axios.put(process.env.REACT_APP_SERVER+'/api/projects',
+      {projectId: params.pId, roleId: params.rId}, {headers: {'user-id': sessionStorage.getItem('userId')}}).then((res) => {
+        if (res.status === 200){
+          sessionStorage.setItem('projectId', params.pId)
+          window.location.href = '/projects'
+        }
+      })
     }
 
   if (!sessionStorage.getItem('userId')) {
@@ -19,6 +23,7 @@ const Invite = ({params}) => {
     axios.get(process.env.REACT_APP_SERVER+'/api/projects/'+params.pId, 
       {headers: {'user-id': sessionStorage.getItem('userId')}})
       .then((res) => {
+        console.log(res.data)
         setProjectName(res.data.project.name)
       })
   }, [])

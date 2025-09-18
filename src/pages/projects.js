@@ -26,12 +26,12 @@ const DateEventsDialog = ({visible, setVisible, selectedDate, dateEvents}) => {
                         <div className="event">
                             <div className="event-maindata">
                                 <h4 className="event-title">{event.title}</h4>
-                                <span className="event-time">{"09:00"}</span>
+                                <span className="event-time">{event.start_time}</span>
                                 <span> - </span>
-                                <span className="event-time">{"11:00"}</span>
+                                <span className="event-time">{event.end_time}</span>
                             </div>
                             <p className="event-description">
-                                {"awdosfksejwfoigj esjgvnsgndfogfj ewfpovjbgpfgeowfjv nfo ppovb vbn pofjkbgpfv  bnfefd bvfpokjb mnv pfjvn pobjvv bn ovpjdbn po dfn pojn pojn ponbpovjn pojnrgend fbkkfvo nbfdvpbo mnv òknfopb nm wefkjl mn eponwefpo mn v fn blpsfmnkdvl lpofmn"}
+                                {event.description}
                             </p>
                         </div>
                     )}
@@ -176,6 +176,7 @@ const Projects = () => {
   const [events, setEvents] = React.useState([]);
   React.useEffect(() => {
     axios.get(process.env.REACT_APP_SERVER+'/api/users/'+sessionStorage.getItem('userId')+'/events', {headers: {"user-id":sessionStorage.userId}}).then((res) => {
+      console.log(res.data);
       setEvents(res.data.events);
     })
   }, []);

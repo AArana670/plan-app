@@ -9,8 +9,8 @@ const changeProfile = (e) => {
     e.preventDefault();
     console.log(e.target.username.value, e.target.email.value, e.target.password.value)
     const body = {}
-    //if (e.target.username.value)
-    //    body['username'] = e.target.username.value
+    if (e.target.username.value)
+        body['username'] = e.target.username.value
     if (e.target.email.value)
         body['email'] = e.target.email.value
     if (e.target.password.value)
